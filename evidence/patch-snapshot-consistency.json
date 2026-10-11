@@ -1,0 +1,37 @@
+[
+  {
+    "path": "current-source/glm-smoke.mjs",
+    "newFileHunkLinesChecked": 1247,
+    "mismatchedLines": []
+  },
+  {
+    "path": "current-source/web-search-smoke.mjs",
+    "newFileHunkLinesChecked": 447,
+    "mismatchedLines": []
+  },
+  {
+    "path": "current-source/glm.ts",
+    "newFileHunkLinesChecked": 2745,
+    "mismatchedLines": []
+  },
+  {
+    "path": "current-source/web-search.ts",
+    "newFileHunkLinesChecked": 577,
+    "mismatchedLines": []
+  },
+  {
+    "path": "current-source/config.ts",
+    "newFileHunkLinesChecked": 90,
+    "mismatchedLines": []
+  },
+  {
+    "path": "current-source/index.ts",
+    "newFileHunkLinesChecked": 95,
+    "mismatchedLines": []
+  },
+  {
+    "path": "current-source/types.ts",
+    "newFileHunkLinesChecked": 40,
+    "mismatchedLines": []
+  }
+]

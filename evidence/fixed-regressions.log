@@ -1,0 +1,61 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> test
+> node --test --test-concurrency=1 tests/*.test.mjs
+
+(node:34) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ expression selects already-audited natural sentences (4.316756ms)
+✔ rejects Sunset role/strength embellishment even with every valid citation ID (0.719675ms)
+✔ rejects lost triggering condition even with every valid citation ID (0.466239ms)
+✔ rejects absence promoted to negative fact even with every valid citation ID (0.239145ms)
+✔ rejects Marco invented other-side identity even with every valid citation ID (0.25496ms)
+✔ rejects Nezha contradictory occurrence even with every valid citation ID (0.323443ms)
+✔ legacy text is accepted only if identical to selected approved sentences (0.448771ms)
+✔ coverage requires a fact and all limitations; duplicate and unknown IDs fail closed (0.579754ms)
+✔ cannot borrow a card-wide second question with only its first quote (1.411664ms)
+✔ multi-question claim can cite a separate atomic card for each question (0.69325ms)
+✔ independence must be supported by quotes for the same question (0.47291ms)
+✔ actual per-question independent quotes still pass (0.461839ms)
+✔ expression cancellation propagates instead of returning an apparently completed answer (1.379805ms)
+✔ citations remain next to the exact approved sentence, not laundered over an entire paragraph (1.427569ms)
+(node:46) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[web-search] fallback engine=search_pro failed: temporary
+✔ rejects model-authored citation/link: 事实。[2] (3.327722ms)
+✔ rejects model-authored citation/link: 事实。来源2 (0.55872ms)
+✔ rejects model-authored citation/link: 事实。[媒体平台来源2] (0.270924ms)
+✔ rejects model-authored citation/link: [伪造](https://fake.invalid/) (0.275453ms)
+✔ rejects model-authored citation/link: https://fake.invalid/ (0.295077ms)
+✔ rejects model-authored citation/link: [伪造](/relative) (0.243402ms)
+✔ rejects model-authored citation/link: [伪造][label] (0.206954ms)
+✔ rejects model-authored citation/link: <a href="//fake.invalid">链接</a> (0.410215ms)
+✔ model-authored citation/link in a limitation is also discarded (1.054054ms)
+✔ all five cited sources remain visible instead of truncating the last source (2.925175ms)
+✔ gap-only answer does not advertise unrelated supported sources as citations (0.654833ms)
+✔ source title cannot manufacture a Markdown link and target parentheses are encoded (0.732028ms)
+✔ sixth follow-up excerpt survives with provider provenance and a bounded display (0.788581ms)
+✔ excerpt bounds retain newest information and fetched page remains authoritative (0.675887ms)
+✔ multi-question evidence card is repaired, never cloned onto both questions (3.006849ms)
+✔ repeated multi-question card fails closed after the one bounded repair (1.102066ms)
+✔ independence uncertainty admits 0 actual sources without fabricating another (1.175284ms)
+✔ independence uncertainty admits 1 actual sources without fabricating another (0.568075ms)
+✔ one source still cannot masquerade as an independent pair (0.961901ms)
+✔ rejected claim may explicitly downgrade to a real insufficient-card limitation (0.858341ms)
+✔ claim-to-gap downgrade requires an explicit kind; matching numeric index is insufficient (0.288378ms)
+✔ downgrade to supported card is rejected instead of laundering a fact as a gap (0.170265ms)
+✔ composite provider abort is not degraded to partial success (0.625681ms)
+✔ already-cancelled composite invokes no provider (0.241669ms)
+✔ Zhipu stops engine fallback when the owner cancels (0.355847ms)
+✔ ordinary provider outage still allows fallback (0.330741ms)
+✔ factual repair cannot silently target the same-index limitation (0.182761ms)
+✔ initial answer rejects repair kind metadata even without a target index (0.17919ms)
+✔ ordinary factual repair may explicitly identify its claim target (0.235526ms)
+ℹ tests 43
+ℹ suites 0
+ℹ pass 43
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 806.914951

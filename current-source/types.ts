@@ -93,6 +93,8 @@ export interface WebSearchResult {
   /** Full fetched page text is retained for local quote validation, not sent to the answer model. */
   verificationContent?: string;
   fullPageFetched?: boolean;
+  /** Whether useful retrieved page text is available, bounded or missing. */
+  pageContentStatus?: "available" | "truncated" | "empty" | "unavailable";
 }
 
 export interface BrainResponse {

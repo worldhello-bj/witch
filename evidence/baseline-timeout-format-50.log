@@ -1,0 +1,667 @@
+(node:13) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[web-search] provider=exa results=0
+[web-search] provider=brave-llm-context results=0 query="query"
+[web-search] provider=tavily results=0 credits=unknown query="query"
+[web-search] fallback engine=search_pro failed: Cannot read properties of null (reading 'search_result')
+[web-search] engine=search_pro results=0 query="query"
+[web-search] fallback engine=search_pro failed: Cannot read properties of null (reading 'title')
+[web-search] fallback engine=search_pro failed: (result.search_result ?? []).filter is not a function
+[web-search] provider=exa results=2
+✖ structured parser rejects "null" without throwing (3.091018ms)
+✖ narrative parser rejects "null" without throwing (0.494055ms)
+✔ structured parser rejects "[]" without throwing (0.328858ms)
+✔ narrative parser rejects "[]" without throwing (0.522936ms)
+✔ structured parser rejects "true" without throwing (0.163697ms)
+✔ narrative parser rejects "true" without throwing (0.495798ms)
+✔ structured parser rejects "0" without throwing (0.179254ms)
+✔ narrative parser rejects "0" without throwing (0.114588ms)
+✔ structured parser rejects "\"\"" without throwing (0.32631ms)
+✔ narrative parser rejects "\"\"" without throwing (0.399008ms)
+✔ structured parser rejects "" without throwing (0.230153ms)
+✔ narrative parser rejects "" without throwing (0.158912ms)
+✔ structured parser rejects "   " without throwing (0.161289ms)
+✔ narrative parser rejects "   " without throwing (0.094078ms)
+✖ structured parser refuses ambiguous wrapper [{}] (2.836458ms)
+✖ narrative parser refuses ambiguous wrapper [{}] (1.65518ms)
+✖ structured parser refuses ambiguous wrapper ["unexpected root array", {}] (0.395023ms)
+✖ narrative parser refuses ambiguous wrapper ["unexpected root array", {}] (0.870923ms)
+✖ structured parser refuses ambiguous wrapper {}
+{} (0.310537ms)
+✖ narrative parser refuses ambiguous wrapper {}
+{} (0.459664ms)
+✔ a single fenced JSON object remains compatible (0.501065ms)
+✔ object extraction handles escaped quotes and braces inside strings (0.513079ms)
+✖ null synthesis uses the bounded format repair instead of terminating the whole answer (1.225834ms)
+✖ null factual audit receives its one format retry (1.922377ms)
+✖ GLM null HTTP payload is a controlled response/schema error (4.636902ms)
+✖ ExaWebSearch rejects root null with a controlled schema error (1.825935ms)
+✖ ExaWebSearch rejects root [] with a controlled schema error (1.012709ms)
+✖ ExaWebSearch keeps usable rows when a provider includes null or malformed rows (0.969898ms)
+✖ ExaWebSearch rejects a non-array result collection without a native TypeError (2.690846ms)
+✖ BraveLlmContextSearch rejects root null with a controlled schema error (1.144609ms)
+✖ BraveLlmContextSearch rejects root [] with a controlled schema error (0.94295ms)
+✖ BraveLlmContextSearch keeps usable rows when a provider includes null or malformed rows (0.905174ms)
+✖ BraveLlmContextSearch rejects a non-array result collection without a native TypeError (0.876064ms)
+✖ TavilyWebSearch rejects root null with a controlled schema error (1.348841ms)
+✖ TavilyWebSearch rejects root [] with a controlled schema error (0.648006ms)
+✖ TavilyWebSearch keeps usable rows when a provider includes null or malformed rows (0.624278ms)
+✖ TavilyWebSearch rejects a non-array result collection without a native TypeError (0.895757ms)
+✖ BaiduWebSearch rejects root null with a controlled schema error (0.808533ms)
+✔ BaiduWebSearch rejects root [] with a controlled schema error (0.554419ms)
+✖ BaiduWebSearch keeps usable rows when a provider includes null or malformed rows (0.512374ms)
+✔ BaiduWebSearch rejects a non-array result collection without a native TypeError (0.422813ms)
+✖ ZhipuWebSearch rejects root null with a controlled schema error (1.203497ms)
+✖ ZhipuWebSearch rejects root [] with a controlled schema error (0.708117ms)
+✖ ZhipuWebSearch keeps usable rows when a provider includes null or malformed rows (0.832023ms)
+✖ ZhipuWebSearch rejects a non-array result collection without a native TypeError (0.871848ms)
+✖ Exa unusable highlight elements do not abort another valid source (3.892982ms)
+✖ Exa null contents row does not discard a valid fetched body (0.62154ms)
+✔ the HTTP deadline remains active after headers while a real response body stalls (113.793661ms)
+[web-search] semantic tool queries=["first query","second query","third query"]
+✖ a stalled transport that ignores AbortSignal still returns control within its deadline (301.045105ms)
+✖ all sequential searches consume one shared turn deadline (136.277322ms)
+ℹ tests 50
+ℹ suites 0
+ℹ pass 17
+ℹ fail 33
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 871.272635
+
+✖ failing tests:
+
+test at tests/timeout-format.test.mjs:24:3
+✖ structured parser rejects "null" without throwing (3.091018ms)
+  TypeError: Cannot read properties of null (reading 'claims')
+      at Module.parseStructuredResearchAnswer (current-source/glm.ts:1533:31)
+      at parse (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:20:24)
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:25:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+
+test at tests/timeout-format.test.mjs:27:3
+✖ narrative parser rejects "null" without throwing (0.494055ms)
+  TypeError: Cannot read properties of null (reading 'paragraphs')
+      at Module.parseResearchNarrative (current-source/glm.ts:1738:31)
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:28:20)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests/timeout-format.test.mjs:32:3
+✖ structured parser refuses ambiguous wrapper [{}] (2.836458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:32:82)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:33:3
+✖ narrative parser refuses ambiguous wrapper [{}] (1.65518ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + {
+  +   paragraphs: [
+  +     {
+  +       claimRefs: [
+  +         1
+  +       ],
+  +       text: '来源记录了一项事实。'
+  +     }
+  +   ]
+  + }
+  - undefined
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:33:81)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { paragraphs: [ [Object] ] },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:32:3
+✖ structured parser refuses ambiguous wrapper ["unexpected root array", {}] (0.395023ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:32:82)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:33:3
+✖ narrative parser refuses ambiguous wrapper ["unexpected root array", {}] (0.870923ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + {
+  +   paragraphs: [
+  +     {
+  +       claimRefs: [
+  +         1
+  +       ],
+  +       text: '来源记录了一项事实。'
+  +     }
+  +   ]
+  + }
+  - undefined
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:33:81)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { paragraphs: [ [Object] ] },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:32:3
+✖ structured parser refuses ambiguous wrapper {}
+{} (0.310537ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:32:82)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:33:3
+✖ narrative parser refuses ambiguous wrapper {}
+{} (0.459664ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + {
+  +   paragraphs: [
+  +     {
+  +       claimRefs: [
+  +         1
+  +       ],
+  +       text: '来源记录了一项事实。'
+  +     }
+  +   ]
+  + }
+  - undefined
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:33:81)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { paragraphs: [ [Object] ] },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:44:1
+✖ null synthesis uses the bounded format repair instead of terminating the whole answer (1.225834ms)
+  TypeError: Cannot read properties of null (reading 'claims')
+      at parseStructuredResearchAnswer (current-source/glm.ts:1533:31)
+      at GlmBrain.finishStructuredResearchAnswer (current-source/glm.ts:373:13)
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:49:18)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/timeout-format.test.mjs:52:1
+✖ null factual audit receives its one format retry (1.922377ms)
+  TypeError: Cannot read properties of null (reading 'approved')
+      at GlmBrain.auditResearchAnswer (current-source/glm.ts:606:31)
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:57:18)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/timeout-format.test.mjs:60:1
+✖ GLM null HTTP payload is a controlled response/schema error (4.636902ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  TypeError: Cannot read properties of null (reading 'choices')
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:62:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of null (reading 'choices')
+        at GlmBrain.complete (current-source/glm.ts:158:32)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:62:3)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:74:37
+✖ ExaWebSearch rejects root null with a controlled schema error (1.825935ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  TypeError: Cannot read properties of null (reading 'results')
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of null (reading 'results')
+        at ExaWebSearch.searchWithFallback (current-source/web-search.ts:47:33)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:74:37
+✖ ExaWebSearch rejects root [] with a controlled schema error (1.012709ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:78:3
+✖ ExaWebSearch keeps usable rows when a provider includes null or malformed rows (0.969898ms)
+  TypeError: Cannot read properties of null (reading 'title')
+      at current-source/web-search.ts:47:68
+      at Array.filter (<anonymous>)
+      at ExaWebSearch.searchWithFallback (current-source/web-search.ts:47:48)
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:81:20)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/timeout-format.test.mjs:84:3
+✖ ExaWebSearch rejects a non-array result collection without a native TypeError (2.690846ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  TypeError: (result.results ?? []).filter is not a function
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:86:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: (result.results ?? []).filter is not a function
+        at ExaWebSearch.searchWithFallback (current-source/web-search.ts:47:48)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:86:5)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:74:37
+✖ BraveLlmContextSearch rejects root null with a controlled schema error (1.144609ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  TypeError: Cannot read properties of null (reading 'grounding')
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of null (reading 'grounding')
+        at BraveLlmContextSearch.searchWithFallback (current-source/web-search.ts:173:33)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:74:37
+✖ BraveLlmContextSearch rejects root [] with a controlled schema error (0.94295ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:78:3
+✖ BraveLlmContextSearch keeps usable rows when a provider includes null or malformed rows (0.905174ms)
+  TypeError: Cannot read properties of null (reading 'snippets')
+      at current-source/web-search.ts:174:36
+      at Array.flatMap (<anonymous>)
+      at BraveLlmContextSearch.searchWithFallback (current-source/web-search.ts:173:59)
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:81:20)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/timeout-format.test.mjs:84:3
+✖ BraveLlmContextSearch rejects a non-array result collection without a native TypeError (0.876064ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  TypeError: ((intermediate value) ?? []).flatMap is not a function
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:86:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: ((intermediate value) ?? []).flatMap is not a function
+        at BraveLlmContextSearch.searchWithFallback (current-source/web-search.ts:173:59)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:86:5)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:74:37
+✖ TavilyWebSearch rejects root null with a controlled schema error (1.348841ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  TypeError: Cannot read properties of null (reading 'results')
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of null (reading 'results')
+        at TavilyWebSearch.searchWithFallback (current-source/web-search.ts:238:33)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:74:37
+✖ TavilyWebSearch rejects root [] with a controlled schema error (0.648006ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:78:3
+✖ TavilyWebSearch keeps usable rows when a provider includes null or malformed rows (0.624278ms)
+  TypeError: Cannot read properties of null (reading 'title')
+      at current-source/web-search.ts:239:23
+      at Array.flatMap (<anonymous>)
+      at TavilyWebSearch.searchWithFallback (current-source/web-search.ts:238:48)
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:81:20)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/timeout-format.test.mjs:84:3
+✖ TavilyWebSearch rejects a non-array result collection without a native TypeError (0.895757ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  TypeError: (result.results ?? []).flatMap is not a function
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:86:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: (result.results ?? []).flatMap is not a function
+        at TavilyWebSearch.searchWithFallback (current-source/web-search.ts:238:48)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:86:5)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:74:37
+✖ BaiduWebSearch rejects root null with a controlled schema error (0.808533ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  TypeError: Cannot read properties of null (reading 'code')
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of null (reading 'code')
+        at BaiduWebSearch.searchWithFallback (current-source/web-search.ts:303:36)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:78:3
+✖ BaiduWebSearch keeps usable rows when a provider includes null or malformed rows (0.512374ms)
+  TypeError: Cannot read properties of null (reading 'type')
+      at current-source/web-search.ts:310:22
+      at Array.flatMap (<anonymous>)
+      at BaiduWebSearch.searchWithFallback (current-source/web-search.ts:309:43)
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:81:20)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/timeout-format.test.mjs:74:37
+✖ ZhipuWebSearch rejects root null with a controlled schema error (1.203497ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  TypeError: Cannot read properties of null (reading 'search_result')
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of null (reading 'search_result')
+        at ZhipuWebSearch.search (current-source/web-search.ts:665:33)
+        at async ZhipuWebSearch.searchWithFallback (current-source/web-search.ts:683:33)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:74:37
+✖ ZhipuWebSearch rejects root [] with a controlled schema error (0.708117ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:76:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:78:3
+✖ ZhipuWebSearch keeps usable rows when a provider includes null or malformed rows (0.832023ms)
+  TypeError: Cannot read properties of null (reading 'title')
+      at current-source/web-search.ts:665:74
+      at Array.filter (<anonymous>)
+      at ZhipuWebSearch.search (current-source/web-search.ts:665:54)
+      at async ZhipuWebSearch.searchWithFallback (current-source/web-search.ts:683:33)
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:81:20)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/timeout-format.test.mjs:84:3
+✖ ZhipuWebSearch rejects a non-array result collection without a native TypeError (0.871848ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  TypeError: (result.search_result ?? []).filter is not a function
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:86:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: (result.search_result ?? []).filter is not a function
+        at ZhipuWebSearch.search (current-source/web-search.ts:665:54)
+        at async ZhipuWebSearch.searchWithFallback (current-source/web-search.ts:683:33)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:86:5)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:89:1
+✖ Exa unusable highlight elements do not abort another valid source (3.892982ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  2 !== 1
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:93:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:95:1
+✖ Exa null contents row does not discard a valid fetched body (0.62154ms)
+  TypeError: Cannot read properties of null (reading 'url')
+      at current-source/web-search.ts:100:76
+      at Array.filter (<anonymous>)
+      at ExaWebSearch.enrichResults (current-source/web-search.ts:100:56)
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:97:18)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/timeout-format.test.mjs:114:1
+✖ a stalled transport that ignores AbortSignal still returns control within its deadline (301.045105ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'hung' !== 'rejected'
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:120:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'hung',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/timeout-format.test.mjs:123:1
+✖ all sequential searches consume one shared turn deadline (136.277322ms)
+  AssertionError [ERR_ASSERTION]: started 3 searches beyond the shared budget
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/timeout-format.test.mjs:139:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

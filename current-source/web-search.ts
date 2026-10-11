@@ -1,3 +1,4 @@
+import { requestJsonObject } from "./http-json.js";
 import type { BrainRequest, BrainResponse, SearchQueryPlanner, WebSearchExecutor, WebSearchResult, WebSearchTaskContext } from "../types.js";
 import type { TurnContext, TurnExtension } from "../runtime/types.js";
 
@@ -46,12 +47,14 @@ interface ExaContentsResponse {
   tag?: string;
   requestId?: string;
   results?: Array<{
+    id?: string;
     title?: string;
     url?: string;
     publishedDate?: string;
     author?: string;
     text?: string;
   }>;
+  statuses?: Array<{ id?: string; status?: string; error?: { tag?: string } }>;
   costDollars?: { total?: number };
 }
 
@@ -135,15 +138,15 @@ const DEFAULT_EXA_OBJECTIVE = [
 
 /**
  * Search first returns query-relevant passages. A separate bounded Contents
- * request fetches only discovered pages for local quote validation; full page
- * text is never sent to the answer model.
+ * request fetches only discovered pages for quote validation and bounded
+ * evidence-review context. Successful extraction does not prove completeness.
  */
 export class ExaWebSearch {
   constructor(private readonly options: ExaSearchOptions) {}
 
   async searchWithFallback(query: string, signal?: AbortSignal, context?: WebSearchTaskContext): Promise<WebSearchResult[]> {
     const maxCharactersPerResult = Math.max(500, Math.min(this.options.maxCharactersPerResult ?? 3000, 3000));
-    const response = await fetch(`${this.options.baseUrl ?? "https://api.exa.ai"}/search`, {
+    const { response, data: result } = await requestJsonObject<ExaSearchResponse>(`${this.options.baseUrl ?? "https://api.exa.ai"}/search`, {
       method: "POST",
       headers: {
         "x-api-key": this.options.apiKey,
@@ -158,25 +161,15 @@ export class ExaWebSearch {
         // sending whole page bodies into the evidence reviewer.
         contents: { highlights: { query, maxCharacters: maxCharactersPerResult } },
       }),
-      signal: signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(this.options.timeoutMs)])
-        : AbortSignal.timeout(this.options.timeoutMs),
-    });
-    const raw = await response.text();
-    let result: ExaSearchResponse;
-    try {
-      result = JSON.parse(raw) as ExaSearchResponse;
-    } catch {
-      throw new Error(`Exa search returned an unrecognized response (HTTP ${response.status})`);
-    }
+    }, { signal, timeoutMs: this.options.timeoutMs, label: "Exa search" });
     if (!response.ok) {
       const detail = result.error ?? result.tag ?? `HTTP ${response.status}`;
       throw new Error(`Exa search failed (${detail})`);
     }
-    const results = (result.results ?? [])
+    const results = providerRows<NonNullable<ExaSearchResponse["results"]>[number]>(result.results, "Exa search")
       // Generated summaries are useful for discovery, but are not original
       // source passages and therefore cannot satisfy verbatim quote checks.
-      .filter((item) => item.title && (item.highlights?.length || item.text))
+      .filter((item) => typeof item.title === "string" && item.title.trim())
       .map((item) => {
         let link = "";
         try {
@@ -184,15 +177,16 @@ export class ExaWebSearch {
           if (parsed.protocol === "https:" && !parsed.username && !parsed.password) link = parsed.toString();
         } catch { /* Keep source text, but never expose a non-public citation target. */ }
         return {
-          title: item.title!,
+          title: item.title!.slice(0, 500),
           link,
-          content: (orderHighlightsByScore(item.highlights, item.highlightScores).join("\n") || item.text!).slice(0, maxCharactersPerResult),
+          content: (orderHighlightsByScore(item.highlights, item.highlightScores).join("\n")
+            || (typeof item.text === "string" ? item.text : "")).trim().slice(0, maxCharactersPerResult),
           media: link ? new URL(link).hostname : undefined,
-          publishDate: item.publishedDate,
-          author: item.author,
+          publishDate: boundedPageMetadata(item.publishedDate, 80),
+          author: boundedPageMetadata(item.author, 160),
           searchProviders: ["exa" as const],
         };
-      });
+      }).filter((item) => item.content.length > 0);
     const estimatedCost = typeof result.costDollars?.total === "number"
       ? ` estimatedCostUsd=${result.costDollars.total.toFixed(6)}` : "";
     console.log(`[web-search] provider=exa results=${results.length}${result.requestId ? ` request=${result.requestId}` : ""}${estimatedCost}`);
@@ -200,51 +194,111 @@ export class ExaWebSearch {
   }
 
   async enrichResults(results: WebSearchResult[], signal?: AbortSignal): Promise<WebSearchResult[]> {
-    const candidates = results.filter((item) => !item.fullPageFetched && item.link.startsWith("https://")).slice(0, 8);
-    if (candidates.length === 0) return results;
-    const response = await fetch(`${this.options.baseUrl ?? "https://api.exa.ai"}/contents`, {
+    signal?.throwIfAborted();
+    // Fragments do not identify a different fetched document. Deduplicate before
+    // applying the request limit so eight anchors cannot crowd out other pages.
+    const candidates = new Map<string, WebSearchResult>();
+    for (const source of results) {
+      if (source.fullPageFetched && hasReadablePageText(source.verificationContent)) continue;
+      const key = contentsUrlKey(source.link);
+      if (key && !candidates.has(key) && candidates.size < 8) candidates.set(key, source);
+    }
+    if (candidates.size === 0) return results;
+    const { response, data: result } = await requestJsonObject<ExaContentsResponse>(`${this.options.baseUrl ?? "https://api.exa.ai"}/contents`, {
       method: "POST",
       headers: { "x-api-key": this.options.apiKey, "content-type": "application/json" },
       body: JSON.stringify({
-        urls: candidates.map((item) => item.link),
-        text: { maxCharacters: 12_000 },
+        urls: [...candidates.keys()],
+        text: { maxCharacters: EXA_PAGE_CHARACTER_LIMIT },
       }),
-      signal: signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(this.options.timeoutMs)])
-        : AbortSignal.timeout(this.options.timeoutMs),
-    });
-    const raw = await response.text();
-    let result: ExaContentsResponse;
-    try { result = JSON.parse(raw) as ExaContentsResponse; }
-    catch { throw new Error(`Exa contents returned an unrecognized response (HTTP ${response.status})`); }
+    }, { signal, timeoutMs: this.options.timeoutMs, label: "Exa contents" });
     if (!response.ok) {
       const detail = result.error ?? result.tag ?? `HTTP ${response.status}`;
       throw new Error(`Exa contents failed (${detail})`);
     }
-    const fetched = new Map((result.results ?? [])
-      .filter((item) => item.url && typeof item.text === "string" && item.text.length > 0)
-      .map((item) => [item.url!, item]));
-    const enriched = results.map((source) => {
-      const page = fetched.get(source.link);
-      if (!page?.text) return source;
+    // A 200 response may contain failed URLs. Never turn a provider error page
+    // into verified evidence, and never bind entries by their array positions.
+    const failed = new Set((Array.isArray(result.statuses) ? result.statuses : []).flatMap((item) => {
+      const key = item && typeof item === "object" ? contentsUrlKey(item.id) : undefined;
+      return key && item.status !== "success" ? [key] : [];
+    }));
+    const fetched = new Map<string, NonNullable<ExaContentsResponse["results"]>[number]>();
+    const empty = new Set<string>();
+    for (const item of Array.isArray(result.results) ? result.results : []) {
+      if (!item || typeof item !== "object") continue;
+      const urlKey = contentsUrlKey(item.url);
+      const idKey = contentsUrlKey(item.id);
+      const keys = new Set<string>();
+      if (urlKey && candidates.has(urlKey)) keys.add(urlKey);
+      // Exa can retain the requested document id after a redirect. Only accept
+      // an explicit id and a same-origin URL: cross-origin content must not
+      // inherit the source identity/authority of the originally requested URL.
+      if (idKey && candidates.has(idKey) && urlKey &&
+          new URL(idKey).origin === new URL(urlKey).origin) keys.add(idKey);
+      for (const key of keys) {
+        if (failed.has(key) || typeof item.text !== "string") continue;
+        const text = item.text.slice(0, EXA_PAGE_CHARACTER_LIMIT);
+        if (hasReadablePageText(text)) {
+          // Do not let an empty duplicate replace successful extraction.
+          if (!fetched.has(key)) fetched.set(key, item);
+        } else empty.add(key);
+      }
+    }
+    const enriched = results.map((source): WebSearchResult => {
+      if (source.fullPageFetched && hasReadablePageText(source.verificationContent)) return source;
+      const key = contentsUrlKey(source.link);
+      if (!key || !candidates.has(key)) return source;
+      const page = fetched.get(key);
+      if (!page || typeof page.text !== "string") return {
+        ...source,
+        verificationContent: undefined,
+        fullPageFetched: false,
+        pageContentStatus: empty.has(key) && !failed.has(key) ? "empty" : "unavailable",
+      };
       return {
         ...source,
-        title: page.title || source.title,
-        publishDate: page.publishedDate || source.publishDate,
-        author: page.author || source.author,
+        title: boundedPageMetadata(page.title, 240) || source.title,
+        publishDate: boundedPageMetadata(page.publishedDate, 80) || source.publishDate,
+        author: boundedPageMetadata(page.author, 160) || source.author,
         // Keep each page's original Search excerpt. Re-highlighting a batch
         // with one shared query can overwrite passages from other queries.
         content: source.content,
-        verificationContent: page.text.slice(0, 12_000),
+        verificationContent: page.text.slice(0, EXA_PAGE_CHARACTER_LIMIT).trim(),
         fullPageFetched: true,
+        // Reaching the extraction limit may mean truncation, even if trimming
+        // later shortens the stored text. Below the limit is still not proof
+        // that the extractor saw every part of the publisher's page.
+        pageContentStatus: page.text.length >= EXA_PAGE_CHARACTER_LIMIT ? "truncated" : "available",
       };
     });
-    const fetchedCount = candidates.filter((candidate) => fetched.has(candidate.link)).length;
     const estimatedCost = typeof result.costDollars?.total === "number"
       ? ` estimatedCostUsd=${result.costDollars.total.toFixed(6)}` : "";
-    console.log(`[web-search] provider=exa contents=${fetchedCount}/${candidates.length}${result.requestId ? ` request=${result.requestId}` : ""}${estimatedCost}`);
+    console.log(`[web-search] provider=exa contents=${fetched.size}/${candidates.size}${result.requestId ? ` request=${result.requestId}` : ""}${estimatedCost}`);
     return enriched;
   }
+
+}
+
+const EXA_PAGE_CHARACTER_LIMIT = 12_000;
+
+/** URL identity only; this does not perform a local crawl or DNS resolution. */
+function contentsUrlKey(value: unknown): string | undefined {
+  if (typeof value !== "string" || value.length > 2048) return undefined;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" || url.username || url.password) return undefined;
+    url.hash = "";
+    const key = url.toString();
+    return key.length <= 2048 ? key : undefined;
+  } catch { return undefined; }
+}
+
+function hasReadablePageText(value: unknown): value is string {
+  return typeof value === "string" && /[^\s\p{Cc}\p{Cf}]/u.test(value);
+}
+
+function boundedPageMetadata(value: unknown, limit: number): string | undefined {
+  return typeof value === "string" ? value.trim().slice(0, limit) || undefined : undefined;
 }
 
 function buildExaObjective(base: string, context?: WebSearchTaskContext): string {
@@ -280,7 +334,7 @@ export class BraveLlmContextSearch {
 
   async searchWithFallback(query: string, signal?: AbortSignal): Promise<WebSearchResult[]> {
     const baseUrl = (this.options.baseUrl ?? "https://api.search.brave.com/res/v1/llm/context").replace(/\/$/u, "");
-    const response = await fetch(baseUrl, {
+    const { response, data: result } = await requestJsonObject<BraveLlmContextResponse>(baseUrl, {
       method: "POST",
       headers: {
         "x-subscription-token": this.options.apiKey,
@@ -298,24 +352,14 @@ export class BraveLlmContextSearch {
         context_threshold_mode: "balanced",
         enable_source_metadata: true,
       }),
-      signal: signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(this.options.timeoutMs)])
-        : AbortSignal.timeout(this.options.timeoutMs),
-    });
-    const raw = await response.text();
-    let result: BraveLlmContextResponse;
-    try {
-      result = JSON.parse(raw) as BraveLlmContextResponse;
-    } catch {
-      throw new Error(`Brave LLM Context returned an unrecognized response (HTTP ${response.status})`);
-    }
+    }, { signal, timeoutMs: this.options.timeoutMs, label: "Brave LLM Context" });
     if (!response.ok) {
       throw new Error(`Brave LLM Context failed (${result.error?.code ?? result.error?.detail ?? `HTTP ${response.status}`})`);
     }
-    const results = (result.grounding?.generic ?? [])
+    const results = providerRows<NonNullable<NonNullable<BraveLlmContextResponse["grounding"]>["generic"]>[number]>(result.grounding?.generic, "Brave LLM Context")
       .flatMap((item) => {
-        const snippets = (item.snippets ?? []).filter((snippet) => typeof snippet === "string" && snippet.trim());
-        if (!item.title || snippets.length === 0) return [];
+        const snippets = (Array.isArray(item.snippets) ? item.snippets : []).filter((snippet) => typeof snippet === "string" && snippet.trim());
+        if (typeof item.title !== "string" || !item.title.trim() || snippets.length === 0) return [];
         let link = "";
         try {
           const parsed = new URL(item.url ?? "");
@@ -326,7 +370,7 @@ export class BraveLlmContextSearch {
           title: item.title,
           link,
           content: snippets.join("\n\n").slice(0, 12_000),
-          media: metadata?.site_name,
+          media: boundedPageMetadata(metadata?.site_name, 160),
           searchProviders: ["brave" as const],
         }];
       });
@@ -341,7 +385,7 @@ export class TavilyWebSearch {
 
   async searchWithFallback(query: string, signal?: AbortSignal): Promise<WebSearchResult[]> {
     const baseUrl = (this.options.baseUrl ?? "https://api.tavily.com/search").replace(/\/$/u, "");
-    const response = await fetch(baseUrl, {
+    const { response, data: result } = await requestJsonObject<TavilySearchResponse>(baseUrl, {
       method: "POST",
       headers: {
         authorization: `Bearer ${this.options.apiKey}`,
@@ -359,22 +403,12 @@ export class TavilyWebSearch {
         country: "china",
         language: "zh",
       }),
-      signal: signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(this.options.timeoutMs)])
-        : AbortSignal.timeout(this.options.timeoutMs),
-    });
-    const raw = await response.text();
-    let result: TavilySearchResponse;
-    try {
-      result = JSON.parse(raw) as TavilySearchResponse;
-    } catch {
-      throw new Error(`Tavily Search returned an unrecognized response (HTTP ${response.status})`);
-    }
+    }, { signal, timeoutMs: this.options.timeoutMs, label: "Tavily Search" });
     if (!response.ok) {
       throw new Error(`Tavily Search failed (${result.detail?.error ?? `HTTP ${response.status}`})`);
     }
-    const results = (result.results ?? []).flatMap((item) => {
-      if (!item.title || !item.content?.trim()) return [];
+    const results = providerRows<NonNullable<TavilySearchResponse["results"]>[number]>(result.results, "Tavily Search").flatMap((item) => {
+      if (typeof item.title !== "string" || !item.title.trim() || typeof item.content !== "string" || !item.content.trim()) return [];
       let link = "";
       try {
         const parsed = new URL(item.url ?? "");
@@ -385,7 +419,7 @@ export class TavilyWebSearch {
         title: item.title.slice(0, 500),
         link,
         content: item.content.slice(0, 12_000),
-        publishDate: item.published_date ?? undefined,
+        publishDate: boundedPageMetadata(item.published_date, 80),
         searchProviders: ["tavily" as const],
       }];
     });
@@ -400,7 +434,7 @@ export class BaiduWebSearch {
 
   async searchWithFallback(query: string, signal?: AbortSignal): Promise<WebSearchResult[]> {
     const endpoint = this.options.baseUrl ?? "https://qianfan.baidubce.com/v2/ai_search/web_search";
-    const response = await fetch(endpoint, {
+    const { response, data: result } = await requestJsonObject<BaiduSearchResponse>(endpoint, {
       method: "POST",
       redirect: "error",
       headers: {
@@ -412,25 +446,15 @@ export class BaiduWebSearch {
         search_source: "baidu_search_v2",
         resource_type_filter: [{ type: "web", top_k: Math.max(1, Math.min(this.options.count ?? 10, 50)) }],
       }),
-      signal: signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(this.options.timeoutMs)])
-        : AbortSignal.timeout(this.options.timeoutMs),
-    });
-    const raw = await response.text();
-    let result: BaiduSearchResponse;
-    try {
-      result = JSON.parse(raw) as BaiduSearchResponse;
-    } catch {
-      throw new Error(`Baidu Search returned an unrecognized response (HTTP ${response.status})`);
-    }
-    if (!response.ok || result.code !== undefined) {
+    }, { signal, timeoutMs: this.options.timeoutMs, label: "Baidu Search" });
+    if (!response.ok || (result.code !== undefined && result.code !== 0 && result.code !== "0")) {
       const detail = typeof result.message === "string" ? result.message.slice(0, 240) : `HTTP ${response.status}`;
       throw new Error(`Baidu Search failed (${detail})`);
     }
     if (!Array.isArray(result.references)) throw new Error("Baidu Search returned an invalid response schema");
 
     const seen = new Set<string>();
-    const results = result.references.flatMap((item) => {
+    const results = providerRows<NonNullable<BaiduSearchResponse["references"]>[number]>(result.references, "Baidu Search").flatMap((item) => {
       if (item.type && item.type !== "web") return [];
       if (typeof item.title !== "string" || !item.title.trim()
         || typeof item.content !== "string" || !item.content.trim()) return [];
@@ -445,8 +469,8 @@ export class BaiduWebSearch {
         title: item.title.slice(0, 500),
         link,
         content: item.content.slice(0, 12_000),
-        media: item.website ?? undefined,
-        publishDate: item.date ?? undefined,
+        media: boundedPageMetadata(item.website, 160),
+        publishDate: boundedPageMetadata(item.date, 80),
         searchProviders: ["baidu" as const],
       }];
     }).slice(0, Math.max(1, Math.min(this.options.count ?? 10, 50)));
@@ -488,7 +512,9 @@ export class ExaBraveWebSearch implements WebSearchExecutor {
       ...(this.tavily ? [{ name: "tavily" as const, run: () => this.tavily!.searchWithFallback(query, signal) }] : []),
       ...(this.baidu ? [{ name: "baidu" as const, run: () => this.baidu!.searchWithFallback(query, signal) }] : []),
     ];
+    signal?.throwIfAborted();
     const settled = await Promise.allSettled(providers.map((provider) => provider.run()));
+    signal?.throwIfAborted();
     const queues = settled.flatMap((result, index) => {
       const provider = providers[index]!;
       if (result.status === "rejected") {
@@ -567,12 +593,16 @@ function mergeProviderRanks(
  * passages based on score. The existing character cap can still truncate the
  * tail, so higher-similarity passages reach the model first.
  */
+function providerRows<T extends object>(value: unknown, label: string): T[] {
+  if (!Array.isArray(value)) throw new Error(`${label} returned an invalid result collection schema`);
+  return value.filter((item): item is T => item !== null && typeof item === "object" && !Array.isArray(item));
+}
 function orderHighlightsByScore(highlights: string[] | undefined, scores: number[] | undefined): string[] {
-  if (!highlights?.length) return [];
-  if (!scores || scores.length !== highlights.length || scores.some((score) => !Number.isFinite(score)))
-    return highlights;
-  return highlights
-    .map((text, index) => ({ text, score: scores[index]!, index }))
+  if (!Array.isArray(highlights)) return [];
+  const alignedScores = Array.isArray(scores) && scores.length === highlights.length
+    && scores.every((score) => typeof score === "number" && Number.isFinite(score));
+  return highlights.map((text, index) => ({ text, index, score: alignedScores ? scores![index]! : 0 }))
+    .filter((item) => typeof item.text === "string" && item.text.trim())
     .sort((left, right) => right.score - left.score || left.index - right.index)
     .map((item) => item.text);
 }
@@ -790,8 +820,7 @@ export class ZhipuWebSearch {
     engine: SearchEngine = this.options.engines?.[0] ?? "search_pro",
     signal?: AbortSignal,
   ): Promise<WebSearchResult[]> {
-    const timeoutSignal = AbortSignal.timeout(this.options.timeoutMs);
-    const response = await fetch(`${this.options.baseUrl}/web_search`, {
+    const { response, data: result } = await requestJsonObject<ZhipuSearchResponse>(`${this.options.baseUrl}/web_search`, {
       method: "POST",
       headers: {
         authorization: `Bearer ${this.options.apiKey}`,
@@ -805,26 +834,18 @@ export class ZhipuWebSearch {
         search_recency_filter: "noLimit",
         content_size: this.options.contentSize ?? "high",
       }),
-      signal: signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal,
-    });
-    const raw = await response.text();
-    let result: ZhipuSearchResponse;
-    try {
-      result = JSON.parse(raw) as ZhipuSearchResponse;
-    } catch {
-      throw new Error(`联网搜索返回了无法识别的数据（HTTP ${response.status}）`);
-    }
+    }, { signal, timeoutMs: this.options.timeoutMs, label: "Zhipu Search" });
     if (!response.ok) throw new Error(result.error?.message ?? `联网搜索失败（HTTP ${response.status}）`);
-    const results = (result.search_result ?? [])
+    const results = providerRows<NonNullable<ZhipuSearchResponse["search_result"]>[number]>(result.search_result, "Zhipu Search")
       // The provider may return a useful title/summary while omitting a URL.
       // Do not discard the factual result merely because it is not clickable.
-      .filter((item) => item.title && item.content)
+      .filter((item) => typeof item.title === "string" && item.title.trim() && typeof item.content === "string" && item.content.trim())
       .map((item) => ({
         title: item.title!,
-        link: item.link ?? "",
-        content: item.content!,
-        media: item.media,
-        publishDate: item.publish_date,
+        link: typeof item.link === "string" ? item.link : "",
+        content: item.content!.slice(0, 12_000),
+        media: boundedPageMetadata(item.media, 160),
+        publishDate: boundedPageMetadata(item.publish_date, 80),
         searchProviders: ["zhipu" as const],
       }));
     console.log("[web-search] engine=" + engine
@@ -835,10 +856,13 @@ export class ZhipuWebSearch {
   async searchWithFallback(query: string, signal?: AbortSignal): Promise<WebSearchResult[]> {
     let lastError: Error | undefined;
     for (const engine of this.engines.slice(0, 3)) {
+      signal?.throwIfAborted();
       try {
         const results = await this.search(query, engine, signal);
+        signal?.throwIfAborted();
         if (results.length > 0) return results;
       } catch (error) {
+        if (signal?.aborted) throw error;
         lastError = error instanceof Error ? error : new Error(String(error));
         console.warn("[web-search] fallback engine=" + engine + " failed: " + lastError.message);
       }

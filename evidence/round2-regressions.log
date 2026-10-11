@@ -1,0 +1,220 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> test
+> node --test --test-concurrency=1 tests/*.test.mjs
+
+(node:28) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ the evidence reviewer receives quotations that exist only in fetched page text (12.708383ms)
+✔ short page evidence stays verbatim and context selection is always bounded (0.458974ms)
+✔ search requests and total research have independent documented defaults (4.876536ms)
+✔ GLM_WEB_SEARCH_TIMEOUT_MS rejects invalid budget 0 (2.718391ms)
+✔ GLM_WEB_SEARCH_TIMEOUT_MS rejects invalid budget NaN (0.396343ms)
+✔ GLM_WEB_SEARCH_TIMEOUT_MS rejects invalid budget Infinity (0.316434ms)
+✔ GLM_WEB_SEARCH_TIMEOUT_MS rejects invalid budget -1 (0.173353ms)
+✔ GLM_WEB_SEARCH_TIMEOUT_MS rejects invalid budget 90000000 (0.256047ms)
+✔ GLM_WEB_SEARCH_TURN_TIMEOUT_MS rejects invalid budget 0 (0.156217ms)
+✔ GLM_WEB_SEARCH_TURN_TIMEOUT_MS rejects invalid budget NaN (1.375711ms)
+✔ GLM_WEB_SEARCH_TURN_TIMEOUT_MS rejects invalid budget Infinity (0.49711ms)
+✔ GLM_WEB_SEARCH_TURN_TIMEOUT_MS rejects invalid budget -1 (0.259839ms)
+✔ GLM_WEB_SEARCH_TURN_TIMEOUT_MS rejects invalid budget 90000000 (0.125874ms)
+✔ documented search/turn overrides reach configuration separately (0.241314ms)
+(node:40) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ expression selects already-audited natural sentences (2.97396ms)
+✔ rejects Sunset role/strength embellishment even with every valid citation ID (0.234096ms)
+✔ rejects lost triggering condition even with every valid citation ID (0.156273ms)
+✔ rejects absence promoted to negative fact even with every valid citation ID (0.154038ms)
+✔ rejects Marco invented other-side identity even with every valid citation ID (0.22221ms)
+✔ rejects Nezha contradictory occurrence even with every valid citation ID (0.265145ms)
+✔ legacy text is accepted only if identical to selected approved sentences (0.426141ms)
+✔ coverage requires a fact and all limitations; duplicate and unknown IDs fail closed (0.745811ms)
+✔ cannot borrow a card-wide second question with only its first quote (1.904335ms)
+✔ multi-question claim can cite a separate atomic card for each question (0.507485ms)
+✔ independence must be supported by quotes for the same question (0.771397ms)
+✔ actual per-question independent quotes still pass (0.226809ms)
+✔ expression cancellation propagates instead of returning an apparently completed answer (1.013115ms)
+✔ citations remain next to the exact approved sentence, not laundered over an entire paragraph (0.993426ms)
+[web-search] provider=exa contents=1/1
+[web-search] provider=exa contents=1/1
+[web-search] provider=exa contents=0/2
+[web-search] provider=exa contents=0/8
+[web-search] provider=exa contents=0/1
+[web-search] provider=exa contents=0/1
+[web-search] provider=exa contents=0/1
+[web-search] provider=exa contents=0/1
+[web-search] provider=exa contents=1/1
+[web-search] provider=exa contents=1/1
+[web-search] provider=exa contents=1/1
+[web-search] provider=exa contents=1/1
+[web-search] provider=exa contents=1/1
+[web-search] provider=exa contents=1/2
+[web-search] provider=exa contents=0/1
+[web-search] provider=exa contents=1/1
+[web-search] provider=exa contents=1/1
+[web-search] provider=exa contents=1/1
+[web-search] provider=exa contents=0/1
+[web-search] provider=exa contents=0/1
+[web-search] provider=exa contents=1/3
+(node:52) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ contents matches URL normalization without dropping a fragment-linked body (8.722033ms)
+✔ equivalent URLs use one request slot and enrich every duplicate (1.212046ms)
+✔ request budget counts distinct pages, not eight fragments of one page (0.802641ms)
+✔ only eight distinct pages are fetched and other sources stay unchanged (0.915603ms)
+✔ empty body is not a fetched full page: "" (0.798694ms)
+✔ empty body is not a fetched full page: " \n\t\r " (0.516663ms)
+✔ empty body is not a fetched full page: "​‌‍﻿" (1.070892ms)
+✔ empty body is not a fetched full page: "\u0000\b\u001b" (0.594083ms)
+✔ a stale fetched flag without body no longer suppresses the contents request (1.643432ms)
+✔ an already retrieved nonempty body is not fetched again (0.306125ms)
+✔ body limit is truthful at 11999 characters (0.872986ms)
+✔ body limit is truthful at 12000 characters (0.49552ms)
+✔ body limit is truthful at 12001 characters (0.369452ms)
+✔ a body that hits its provider limit remains truncated after trimming outer whitespace (0.833622ms)
+✔ partial HTTP-200 failure does not discard the other page or accept failed text (1.02102ms)
+✔ missing results have an explicit unavailable outcome (0.472564ms)
+✔ unexpected response entries are ignored independently (0.590637ms)
+✔ an empty duplicate response cannot overwrite already usable body text (0.432938ms)
+✔ an explicit matching document id can bind a same-origin redirected page (0.362835ms)
+✔ cross-origin redirected text is not attributed to the original publisher (0.962276ms)
+✔ response position never binds unrequested pages to a requested source (1.1784ms)
+✔ distinct query parameters and paths are not merged by URL matching (0.600942ms)
+✔ credentialed, non-HTTPS and oversized URLs are not transmitted (0.224637ms)
+✔ contents cancellation stops before contacting the provider (0.61108ms)
+[web-search] provider=exa results=1
+[web-search] provider=exa results=1
+[web-search] provider=exa results=1
+✔ evidence model receives and verifies the fetched-body fact absent from search excerpts (3.30578ms)
+✔ later body windows are available to review with explicit partial/truncated boundaries (6.007187ms)
+✔ inserted omission markers cannot become supposedly verbatim source evidence (7.118241ms)
+✔ empty highlights without fallback text cannot crash the whole Exa search (1.058963ms)
+✔ whitespace highlights cannot hide usable extracted text (0.500495ms)
+✔ malformed Exa highlights are isolated from valid source passages (0.598948ms)
+(node:64) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[web-search] fallback engine=search_pro failed: temporary
+✔ rejects model-authored citation/link: 事实。[2] (3.679775ms)
+✔ rejects model-authored citation/link: 事实。来源2 (0.407479ms)
+✔ rejects model-authored citation/link: 事实。[媒体平台来源2] (0.397045ms)
+✔ rejects model-authored citation/link: [伪造](https://fake.invalid/) (0.266136ms)
+✔ rejects model-authored citation/link: https://fake.invalid/ (0.213301ms)
+✔ rejects model-authored citation/link: [伪造](/relative) (0.160406ms)
+✔ rejects model-authored citation/link: [伪造][label] (0.101654ms)
+✔ rejects model-authored citation/link: <a href="//fake.invalid">链接</a> (0.210461ms)
+✔ model-authored citation/link in a limitation is also discarded (0.310055ms)
+✔ all five cited sources remain visible instead of truncating the last source (2.405853ms)
+✔ gap-only answer does not advertise unrelated supported sources as citations (0.570876ms)
+✔ source title cannot manufacture a Markdown link and target parentheses are encoded (0.468436ms)
+✔ sixth follow-up excerpt survives with provider provenance and a bounded display (0.630393ms)
+✔ excerpt bounds retain newest information and fetched page remains authoritative (0.422685ms)
+✔ multi-question evidence card is repaired, never cloned onto both questions (2.872931ms)
+✔ repeated multi-question card fails closed after the one bounded repair (1.011373ms)
+✔ independence uncertainty admits 0 actual sources without fabricating another (1.068654ms)
+✔ independence uncertainty admits 1 actual sources without fabricating another (0.464592ms)
+✔ one source still cannot masquerade as an independent pair (0.43335ms)
+✔ rejected claim may explicitly downgrade to a real insufficient-card limitation (0.617414ms)
+✔ claim-to-gap downgrade requires an explicit kind; matching numeric index is insufficient (0.231169ms)
+✔ downgrade to supported card is rejected instead of laundering a fact as a gap (0.156094ms)
+✔ composite provider abort is not degraded to partial success (1.353578ms)
+✔ already-cancelled composite invokes no provider (0.281104ms)
+✔ Zhipu stops engine fallback when the owner cancels (0.662431ms)
+✔ ordinary provider outage still allows fallback (0.37405ms)
+✔ factual repair cannot silently target the same-index limitation (0.195291ms)
+✔ initial answer rejects repair kind metadata even without a target index (0.226372ms)
+✔ ordinary factual repair may explicitly identify its claim target (0.213318ms)
+(node:76) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[web-search] provider=exa results=1
+[web-search] provider=brave-llm-context results=1 query="query"
+[web-search] provider=tavily results=1 credits=unknown query="query"
+[web-search] provider=baidu results=1 query="query"
+[web-search] fallback engine=search_pro failed: Zhipu Search returned an invalid JSON object (HTTP 200)
+[web-search] fallback engine=search_pro failed: Zhipu Search returned an invalid JSON object (HTTP 200)
+[web-search] engine=search_pro results=1 query="query"
+[web-search] fallback engine=search_pro failed: Zhipu Search returned an invalid result collection schema
+[web-search] provider=exa results=1
+[web-search] provider=exa contents=1/1
+✔ structured parser rejects "null" without throwing (2.420422ms)
+✔ narrative parser rejects "null" without throwing (0.797609ms)
+✔ structured parser rejects "[]" without throwing (0.258105ms)
+✔ narrative parser rejects "[]" without throwing (0.144303ms)
+✔ structured parser rejects "true" without throwing (0.160532ms)
+✔ narrative parser rejects "true" without throwing (0.140027ms)
+✔ structured parser rejects "0" without throwing (0.086377ms)
+✔ narrative parser rejects "0" without throwing (0.155936ms)
+✔ structured parser rejects "\"\"" without throwing (0.128152ms)
+✔ narrative parser rejects "\"\"" without throwing (0.199644ms)
+✔ structured parser rejects "" without throwing (0.280923ms)
+✔ narrative parser rejects "" without throwing (0.125893ms)
+✔ structured parser rejects "   " without throwing (0.073596ms)
+✔ narrative parser rejects "   " without throwing (0.681451ms)
+✔ structured parser refuses ambiguous wrapper [{}] (0.194392ms)
+✔ narrative parser refuses ambiguous wrapper [{}] (0.090828ms)
+✔ structured parser refuses ambiguous wrapper ["unexpected root array", {}] (0.059438ms)
+✔ narrative parser refuses ambiguous wrapper ["unexpected root array", {}] (0.049534ms)
+✔ structured parser refuses ambiguous wrapper {}
+{} (0.544291ms)
+✔ narrative parser refuses ambiguous wrapper {}
+{} (0.193871ms)
+✔ a single fenced JSON object remains compatible (1.519217ms)
+✔ object extraction handles escaped quotes and braces inside strings (0.481189ms)
+✔ null synthesis uses the bounded format repair instead of terminating the whole answer (1.724696ms)
+✔ null factual audit receives its one format retry (0.787515ms)
+✔ GLM null HTTP payload is a controlled response/schema error (7.298385ms)
+✔ ExaWebSearch rejects root null with a controlled schema error (1.295126ms)
+✔ ExaWebSearch rejects root [] with a controlled schema error (0.69613ms)
+✔ ExaWebSearch keeps usable rows when a provider includes null or malformed rows (0.965797ms)
+✔ ExaWebSearch rejects a non-array result collection without a native TypeError (0.655976ms)
+✔ BraveLlmContextSearch rejects root null with a controlled schema error (1.223783ms)
+✔ BraveLlmContextSearch rejects root [] with a controlled schema error (0.672806ms)
+✔ BraveLlmContextSearch keeps usable rows when a provider includes null or malformed rows (0.690615ms)
+✔ BraveLlmContextSearch rejects a non-array result collection without a native TypeError (0.478783ms)
+✔ TavilyWebSearch rejects root null with a controlled schema error (0.838878ms)
+✔ TavilyWebSearch rejects root [] with a controlled schema error (0.725659ms)
+✔ TavilyWebSearch keeps usable rows when a provider includes null or malformed rows (1.276807ms)
+✔ TavilyWebSearch rejects a non-array result collection without a native TypeError (0.557938ms)
+✔ BaiduWebSearch rejects root null with a controlled schema error (0.630121ms)
+✔ BaiduWebSearch rejects root [] with a controlled schema error (0.582469ms)
+✔ BaiduWebSearch keeps usable rows when a provider includes null or malformed rows (0.696484ms)
+✔ BaiduWebSearch rejects a non-array result collection without a native TypeError (0.583405ms)
+✔ ZhipuWebSearch rejects root null with a controlled schema error (0.846849ms)
+✔ ZhipuWebSearch rejects root [] with a controlled schema error (0.407622ms)
+✔ ZhipuWebSearch keeps usable rows when a provider includes null or malformed rows (0.586069ms)
+✔ ZhipuWebSearch rejects a non-array result collection without a native TypeError (0.671644ms)
+✔ Exa unusable highlight elements do not abort another valid source (2.084694ms)
+✔ Exa null contents row does not discard a valid fetched body (1.281223ms)
+✔ the HTTP deadline remains active after headers while a real response body stalls (115.17017ms)
+[web-search] semantic tool queries=["first query","second query","third query"]
+✔ a stalled transport that ignores AbortSignal still returns control within its deadline (51.028225ms)
+[web-search] provider=exa contents=0/1
+[web-search] semantic tool queries=["query"]
+✔ all sequential searches consume one shared turn deadline (65.834437ms)
+✔ Exa whitespace-only contents never becomes a fetched authoritative page (0.851145ms)
+✔ oversized provider JSON is rejected before it can consume an unbounded read (27.701037ms)
+[web-search] semantic tool queries=["query"]
+✔ turn deadline releases the caller even when a custom search provider ignores cancellation (51.167316ms)
+[web-search] planned contextual query="公开资料查询"
+[web-search] planned contextual query="公开资料查询"
+[web-search] provider=exa results=1
+[web-search] provider=brave-llm-context results=1 query="query"
+[web-search] provider=tavily results=1 credits=unknown query="query"
+[web-search] provider=baidu results=1 query="query"
+[web-search] engine=search_pro results=1 query="query"
+✔ external cancellation releases an uncooperative provider without claiming completion (21.073677ms)
+✔ beginToolTurn forwards the caller cancellation signal into completion (0.505441ms)
+✔ planWebSearchQuery forwards the caller cancellation signal into completion (0.272646ms)
+✔ contextual query planning accepts the same single fenced JSON contract as research (0.20341ms)
+✔ ExaWebSearch malformed optional metadata cannot crash candidate preparation (1.350458ms)
+✔ BraveLlmContextSearch malformed optional metadata cannot crash candidate preparation (0.774779ms)
+✔ TavilyWebSearch malformed optional metadata cannot crash candidate preparation (0.349049ms)
+✔ BaiduWebSearch malformed optional metadata cannot crash candidate preparation (0.452757ms)
+✔ ZhipuWebSearch malformed optional metadata cannot crash candidate preparation (0.663149ms)
+ℹ tests 149
+ℹ suites 0
+ℹ pass 149
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2088.555581

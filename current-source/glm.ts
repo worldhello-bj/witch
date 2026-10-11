@@ -1,3 +1,4 @@
+import { requestJsonObject, runWithDeadline, RequestTimeoutError } from "./http-json.js";
 import fs from "node:fs/promises";
 import { createHash } from "node:crypto";
 import type { Personality } from "../personality.js";
@@ -25,12 +26,16 @@ export interface GlmBrainOptions {
   reasoningEffort: ReasoningEffort;
   maxTokens: number;
   timeoutMs: number;
+  /** One shared deadline for planning, search, page reading, review, repair and expression. */
+  researchTimeoutMs?: number;
   webSearch?: WebSearchExecutor;
 }
 const MAX_SEARCH_RESULTS_PER_QUERY = 20;
 const MAX_WEB_SEARCH_CANDIDATES = 75;
 const MAX_REVIEWED_EVIDENCE_CARDS = 8;
 const MAX_QUOTES_PER_EVIDENCE_CARD = 2;
+// Up to five focused queries across three providers, including follow-ups.
+const MAX_SEARCH_EXCERPTS_PER_SOURCE = 15;
 const WEB_SEARCH_TOOL: GlmToolDefinition = {
   type: "function",
   function: {
@@ -103,7 +108,7 @@ interface ReviewedEvidence {
     quotes: Array<{ sourceId: number; quote: string }>;
   }>;
   gaps: Array<{ requestedPointIds: number[]; sourceIds: number[]; text: string }>;
-  sourceCoveragePages?: Array<{ sourceId: number; title: string; link: string; text: string }>;
+  sourceCoveragePages?: Array<{ sourceId: number; title: string; link: string; text: string; pageContentStatus?: WebSearchResult["pageContentStatus"]; textIsPartial?: boolean }>;
   sourceDisclosures: Array<{ sourceId: number; quote: string }>;
   reviewerNotes: Array<{
     requestedPointIds: number[];
@@ -151,6 +156,7 @@ interface StructuredResearchAnswer {
     group: number;
     sourceIds: number[];
     repairTargetOriginalIndex?: number;
+    repairTargetKind?: "claim" | "limitation";
   }>;
 }
 interface StructuredResearchAnswerRepairPlan {
@@ -248,7 +254,7 @@ export class GlmBrain implements Brain {
       reasoningEffortOverride ?? this.options.reasoningEffort;
     const thinkingDisabled =
       reasoningEffort === "none" || reasoningEffort === "minimal";
-    const response = await fetch(`${this.options.baseUrl}/chat/completions`, {
+    const { response, data: result } = await requestJsonObject<GlmResponse>(`${this.options.baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         authorization: `Bearer ${this.options.apiKey}`,
@@ -274,26 +280,15 @@ export class GlmBrain implements Brain {
             }
           : {}),
       }),
-      signal: signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(this.options.timeoutMs)])
-        : AbortSignal.timeout(this.options.timeoutMs),
-    });
-    const raw = await response.text();
-    let result: GlmResponse;
-    try {
-      result = JSON.parse(raw) as GlmResponse;
-    } catch {
-      throw new Error(
-        `GLM returned a non-JSON response (HTTP ${response.status})`,
-      );
-    }
+    }, { signal, timeoutMs: this.options.timeoutMs, label: "GLM" });
     if (!response.ok) {
       throw new Error(
         `GLM request failed (HTTP ${response.status}): ${result.error?.message ?? "unknown error"}`,
       );
     }
-    const message = result.choices?.[0]?.message;
-    if (!message) throw new Error("GLM returned no assistant message");
+    const message = Array.isArray(result.choices) ? result.choices[0]?.message : undefined;
+    if (!message || typeof message !== "object" || Array.isArray(message))
+      throw new Error("GLM returned no valid assistant message");
     return {
       ...message,
       role: "assistant",
@@ -308,7 +303,7 @@ export class GlmBrain implements Brain {
     requiredToolName?: string,
   ): Promise<GlmToolTurn> {
     const initial = await this.initialMessages(request);
-    const message = await this.complete(initial, tools, requiredToolName);
+    const message = await this.complete(initial, tools, requiredToolName, undefined, request.signal);
     return {
       messages: [...initial, message],
       text: typeof message.content === "string" ? message.content.trim() : "",
@@ -396,12 +391,13 @@ export class GlmBrain implements Brain {
       undefined,
       undefined,
       { type: "json_object" },
+      request.signal,
     );
     const content =
       typeof message.content === "string" ? message.content.trim() : "";
     if (!content) return undefined;
     try {
-      const parsed = JSON.parse(content) as { query?: unknown };
+      const parsed = JSON.parse(extractJsonObject(content)) as { query?: unknown };
       if (typeof parsed.query !== "string") return undefined;
       const query = parsed.query.trim();
       if (!query) return undefined;
@@ -450,12 +446,13 @@ export class GlmBrain implements Brain {
       undefined,
       undefined,
       { type: "json_object" },
+      request.signal,
     );
     const content =
       typeof message.content === "string" ? message.content.trim() : "";
     if (!content) return undefined;
     try {
-      const parsed = JSON.parse(content) as { query?: unknown };
+      const parsed = JSON.parse(extractJsonObject(content)) as { query?: unknown };
       if (typeof parsed.query !== "string") return undefined;
       const query = parsed.query.trim();
       return query ? [...query].slice(0, 120).join("") : undefined;
@@ -573,7 +570,7 @@ export class GlmBrain implements Brain {
         const activeRepairPlan = repairPlan;
         const targetedRepair = activeRepairPlan !== undefined;
         const repairSystemInstruction = targetedRepair
-          ? "上一版只有部分条目未通过审查。现在只重写 repairTargets.rejectedClaims 与 repairTargets.rejectedLimitations；repairTargets.preservedClaims / preservedLimitations 已通过审查，必须保持原样，不要重新生成或删除。新条目必须继续绑定真实引文/缺口卡。仅输出 JSON，claims 和 limitations 只放这些被拒条目的替代项；每个替代项都必须带 repairTargetOriginalIndex，值为它所替代条目的 originalIndex。若一个被拒条目拆成多条，每条都填同一个 originalIndex。不得把替代内容关联到其他被拒条目。程序会保留通过项并合并替代项。"
+          ? "上一版只有部分条目未通过审查。现在只重写 repairTargets.rejectedClaims 与 repairTargets.rejectedLimitations；repairTargets.preservedClaims / preservedLimitations 已通过审查，必须保持原样，不要重新生成或删除。新条目必须继续绑定真实引文/缺口卡。仅输出 JSON，claims 和 limitations 只放这些被拒条目的替代项；每个替代项都必须带 repairTargetOriginalIndex，值为它所替代条目的 originalIndex。若一个被拒条目拆成多条，每条都填同一个 originalIndex。不得把替代内容关联到其他被拒条目。若被拒 claim 无法获得支持，可改为绑定对应 insufficient 卡的 limitation，但必须另填 repairTargetKind=\"claim\"，避免与相同编号的旧 limitation 混淆；普通 limitation 修订可省略此字段或填 \"limitation\"。程序会保留通过项并合并替代项。"
           : "前一版未通过结构或证据审查。针对每条被拒 claim、limitation 或结构问题做最小修订：无法由 supported/conflicting 卡片的逐字引文支持的事实 claim 必须删除；限制说明只能绑定 insufficient 卡，并且只描述资料边界，不能伪装成事实。如果上一版的 claim 缺少 evidenceRefs 或该数组为空，不得编造引用：只有找到真实存在且支持该句的逐字引文时才补上；否则删除该事实 claim，或在确属资料边界时改为绑定相应 insufficient 卡的 limitation。如果审查意见指出用户某个明确问项/子问题未回答，必须针对每个缺失项补入一条有对应原文支持的 claim；若证据确实不足，则补入绑定相应 insufficient 卡的 limitation。不要用其他背景或来源索引代替该问项，也不要只删掉被拒内容后把遗漏当作修复完成。输出前逐项对照用户原问题，确认每个明确问项都有直接答案或具体证据缺口。保留其余已通过审查的 claims 和 limitations。允许减少内容，绝不能增加新事实。重新输出完整 JSON 对象。";
         const repairContext = targetedRepair
           ? {
@@ -1008,8 +1005,8 @@ export class GlmBrain implements Brain {
       "遵循输入中提供的 Witch 人格与交流方式：自然、简洁、亲近而诚实，像在和主人解释问题，不能变成来源审计报告、事实卡片串烧或公文资料汇编。先正面回答，再补充最能改变理解的条件和差异。普通问题通常1到2段、约100到300个汉字；多个明确问项可到3段、最多450字。只留核心事实和会改变结论的限制，次要细节可以省略；不要把每张卡逐条念完、重复总结，也不要为填满段落而复述资料边界。不要重复称呼主人，不为展示检索过程重复交代每个页面的身份和抓取情况。",
       "来源身份必须按每个核准要点里的 sourceAttribution/sourceKinds 原样保持：只有 sourceAttribution=verified-publisher 才能称为发布方/官方信息；self-description 只能说页面自称、身份未独立核验；none 不得把媒体、社区或未核实平台升级称为官方。可用自然、简短的归属说法，不要把出处限制写成额外长段。",
       "特别保留检索范围：如果核准要点只是说‘本轮材料未找到’，绝不能表达成‘官方从未说过/根本没有/不存在’；有限官方网页中的不同命名，只能说明本轮查到的这些页面如何命名，不能概括为官方全体的唯一用词。",
-      "只能改写和组织下列核准要点，不得增加常识、推测、建议或新事实；保留要点中的条件、来源分歧、时间/版本范围和不确定性。每条‘已核验的信息缺口’都必须保留，避免把有限证据写成确定结论；同一问项的次要事实可以省略，但每个 requestedPointId 至少要有一条对应要点留在答案中。不要增加‘建议去哪里查/以什么为准’等核准要点中没有的行动建议；用户的排除条件只需遵守，不要转写成相似作品、被排除结果等旁支话题。不要在正文写来源类别、域名、编号或网址，程序会按 claimRefs 自动放置可点击引文。",
-      '只输出 JSON：{"paragraphs":[{"text":"自然连贯的中文段落","claimRefs":[1,2]}]}。claimRefs 使用下列要点的 id；可省略次要事实要点，但所有信息缺口要点都必须引用。每个用户问项都要覆盖；若该问项有已核实事实，至少引用其中一个事实要点，不能只用“本轮未确认”代替已有事实。每个被引用 id 只能出现在一个段落中，不可重复或引用不存在的 id。最多3段，每段最多400字，总正文最多700字；超出时程序会回退到已核实的结构化答案。',
+      "只能选择、排序和分段下列核准要点的完整原句，不得同义改写、截断条件或生成新的正文。自然中文已由前面的合成与独立审查完成；本层只返回 claimRefs，程序直接组装原句。不得增加常识、推测、建议或新事实；保留要点中的条件、来源分歧、时间/版本范围和不确定性。每条‘已核验的信息缺口’都必须保留，避免把有限证据写成确定结论；同一问项的次要事实可以省略，但每个 requestedPointId 至少要有一条对应要点留在答案中。不要增加‘建议去哪里查/以什么为准’等核准要点中没有的行动建议；用户的排除条件只需遵守，不要转写成相似作品、被排除结果等旁支话题。不要在正文写来源类别、域名、编号或网址，程序会按 claimRefs 自动放置可点击引文。",
+      '只输出 JSON：{"paragraphs":[{"claimRefs":[1,2]}]}。不要生成 text 字段；每段按 claimRefs 顺序逐字拼接核准原句，并在每句后绑定该句的来源。claimRefs 使用下列要点的 id；可省略次要事实要点，但所有信息缺口要点都必须引用。每个用户问项都要覆盖；若该问项有已核实事实，至少引用其中一个事实要点，不能只用“本轮未确认”代替已有事实。每个被引用 id 只能出现在一个段落中，不可重复或引用不存在的 id。最多3段，每段最多400字，总正文最多700字；超出时程序会回退到已核实的结构化答案。',
     ].join("\n");
     try {
       const message = await this.complete(
@@ -1032,6 +1029,7 @@ export class GlmBrain implements Brain {
         "low",
         2_000,
       );
+      request.signal?.throwIfAborted();
       const narrative = message.finish_reason === "length"
         ? undefined
         : parseResearchNarrative(
@@ -1042,8 +1040,10 @@ export class GlmBrain implements Brain {
         return renderResearchNarrative(narrative, items, evidence, sources);
       console.warn("[web-search] natural expression format invalid; using verified structured answer");
     } catch (error) {
+      if (request.signal?.aborted) throw error;
       console.warn("[web-search] natural expression failed; using verified structured answer", error);
     }
+    request.signal?.throwIfAborted();
     return fallback();
   }
   private async planWebSearch(request: BrainRequest): Promise<WebSearchPlan> {
@@ -1237,17 +1237,17 @@ export class GlmBrain implements Brain {
       "对于‘官方未使用某名称/未发布某规则’这类否定命题，页面没有出现该词不能作为支持引文。必须将其作为 evidenceScope=retrieval-limit、status=insufficient 的本轮检索缺口；如果找到的是不同官方名称，只能写明该具体页面使用了什么名称，并将它与社区俗称的关系保留为未确认。",
       "策略/玩法资料常有必选、可选、过渡、成型、不同版本等条件。必须保留来源原有条件；一个来源写‘可选’、‘第六人’或‘视情况’，不得合并成全体玩家都必带的核心配置。不同来源配置不同时分开列明，不能凭多数印象合成一套新结论。",
       "按用户问题的具体要点逐项检查来源正文，生成事实卡片。广告/宣传语只能标为来源自述，不能当作客观效果；要求、排除条件和链接格式不是事实要点。sourceKind 仅表示程序按精确主机名判断的托管域名类别，不代表文章作者/账号身份，也不代表内容质量。author 是搜索提供方或页面元数据给出的作者字段，只是未经认证的页面声明；不可据此把媒体/社区托管页升级为发布方官方来源。另找出正文中直接描述作者、账号或发布身份的原句，写入 sourceDisclosures；它只证明页面这样自述，不证明身份已独立认证。只有 sourceKind=publisher（精确发布方域名白名单）或 sourceKind=disclosure（精确上市公司披露平台主机名、且文件正文明确列出发行主体）并且逐字引文直接支持时，才能形成发布方/公司公告主张；其余只能按托管域名和原文谨慎表述。",
-      "用户问题已由规划器拆成 requestedPoints，编号和文字会在输入中提供。事实卡的 point 必须对应这些明确问项，并把 requestedPointIds 写成对应编号；不要把来源中出现的日期、平台、开服、画面、营销等内容擅自扩成问项。一个问项没有证据时创建该问项的检索缺口卡。",
+      "用户问题已由规划器拆成 requestedPoints，编号和文字会在输入中提供。事实卡的 point 必须对应这些明确问项，每张卡的 requestedPointIds 必须恰好包含一个编号，包括 insufficient 卡。禁止用多问项卡共享引文；跨问项事实必须分别核对、建立单问项卡。不要把来源中出现的日期、平台、开服、画面、营销等内容擅自扩成问项。一个问项没有证据时创建该问项的检索缺口卡。",
       "当用户问某作品的核心玩法时，把玩家实际反复进行的行动、选择和主要内容循环当作核心要点；优先找具体玩法机制与玩法循环。画面风格、配音、商业模式、营销卖点，即使来源提及，也不是玩法证据，除非用户明确询问。若页面只列卖点而没有说明玩家实际做什么，应记录这一证据缺口，不要用宣传标签代替玩法解释。",
       "不得从几个彼此并列的玩法模块推断出‘核心循环’、成长路径或必然操作顺序。只有原文明确描述重复行动、步骤先后或机制衔接时，才能概括成循环；否则将模块逐项列明，并记录来源没有解释它们如何构成循环。",
       "只有在两个来源讨论同一技能/事实方面、同一触发动作与兼容版本/条件，并给出互不相容的相反原句时，才标 status=conflicting。不同触发事件（如合成、登场、受击）或同一对象的不同技能可能并存，必须拆成各自 supported 卡，不能制造冲突；是否对应同一机制无法确认时，保留各自描述并将对应关系标为缺口。",
       "若用户要求解释一个名单中多个对象/棋子/步骤各自的机制或触发条件，优先为每个对象分别建立证据卡，卡片要区分对象、触发动作、效果和适用条件；只找到名单或只有部分对象的条件时，未覆盖项必须作为缺口保留。",
       `证据卡要覆盖所有用户问项，但不要把每个来源的整段正文都复制进 JSON。通常每个问项只建一张综合卡；同一问项有多个来源变体时，在该卡的 quotes 中分别保留能区分方案的原句，不要为每个来源重复建卡。一个问项若要求区分两个实体/身份/方案，必须为每一侧建立单独卡片，并且每张卡只绑定能直接支持该侧的引文；缺少一侧原文时，为那一侧建立独立 insufficient 缺口卡，不能把另一侧材料复用来填空。只有不同结论/条件必须独立表达时才拆卡。硬性上限：最多 ${MAX_REVIEWED_EVIDENCE_CARDS} 张卡、每张最多 ${MAX_QUOTES_PER_EVIDENCE_CARD} 条引文、每条引文最多 280 字；最多 6 条缺口、6 条 reviewerNotes、3 条 sourceDisclosures。引文优先保留对象、触发条件、版本和结论，不要带无关上下文。finding 最多 200 字，只作事实索引，不复述引文或添加推断，后续回答不得将 finding 当作依据。reviewerNotes 必须与 finding 分开，只写某条具体来源在实体、时间、版本、适用范围或身份方面的可核验风险；不得写一般事实摘要、共同机制、阵容总结、搜索缺口或推断结论。每条 note 必须绑定输入中存在的 sourceIds 和 requestedPointIds；没有具体风险时返回空数组。优先保证每个问项与关键变体都有卡片，不要为了追求来源覆盖而重复抄录同一机制。`,
-      "每条 supported finding 必须带至少一条逐字摘录，quote 必须原样连续出现在对应来源正文里。sources 会标明是否抓取了完整正文：fullPageFetched=true 时优先从正文相关片段取证；否则只依据查询相关摘录，并把证据范围限制说清。冲突必须列出相反来源的原句；缺少证据就用 insufficient 并写清缺口。不得用常识补齐，不得把搜索摘要当成已验证正文。",
+      "每条 supported finding 必须带至少一条逐字摘录，quote 必须原样连续出现在对应来源正文里。pageContentExcerpt 是本轮实际抓取正文的有界逐字片段，应优先从这里取证；content 是查询相关摘录。fullPageFetched=true 只代表拿到有用正文，不代表整页无截断。pageContentStatus=truncated 或 pageContentExcerptIsPartial=true 时，不得据未显示内容断言整页没有某事实；省略标记不是原文，quote 不能跨省略标记拼接。没有正文时只依据查询相关摘录，并把证据范围限制说清。冲突必须列出相反来源的原句；缺少证据就用 insufficient 并写清缺口。不得用常识补齐，不得把搜索摘要当成已验证正文。",
        `完成证据卡后检查用户每个核心要点是否仍缺关键证据。只有存在可通过网页检索补齐的重要缺口时，给出最多${maxFollowupQueries}条具体 followupQueries；多引擎会并行执行每条查询，因此优先只补最可能改变答案的关键缺口。优先精确版本/玩法名/来源原句所指向的发布方或出品发行公司公告，再找独立的媒体/社区来源。涉及电影、产品或游戏时，可从已抓正文提取发布方/出品方名称，组成‘机构名 + 作品名 + 公告/规则/版本’查询；不要只反复搜索泛化的‘官方’。若缺口无法由检索解决，或核心要点已有足够材料，返回空数组。所有 gaps 必须是带 requestedPointIds 的对象；某个问项只被部分证据覆盖时，仍要为其未确认的子项另列 gap，不得因该问项已有 supported 卡而省略。程序会把每个 gap 转成对应的 insufficient 卡供回答层绑定。`,
-      '输出 JSON：{"cards":[{"point":string,"requestedPointIds":[number],"finding":string,"evidenceScope":"quoted-content"|"retrieval-limit","status":"supported"|"conflicting"|"insufficient","quotes":[{"sourceId":number,"quote":string}]}],"reviewerNotes":[{"requestedPointIds":[number],"sourceIds":[number],"riskType":"entity"|"temporal"|"version"|"scope"|"identity"|"other","note":string}],"independenceAssessments":[{"requestedPointId":number,"sourceIds":[number,number],"status":"independent"|"syndicated"|"uncertain","rationale":string}],"sourceDisclosures":[{"sourceId":number,"quote":string}],"gaps":[{"requestedPointIds":[number],"text":string}],"followupQueries":[string]}。每个 independentSupportRequired 问项都必须给出至少一个针对同一机制的来源组合评估；status=independent 才可用于独立印证，来源关系无法确认必须是 uncertain，确认为转载/共用原稿则是 syndicated。不能只凭不同网址判断独立。reviewerNotes 只报具体来源适用风险，不得包含事实总结或把 finding 改名搬入；没有明确风险时必须返回空数组。requestedPointIds 只能使用输入中给出的编号，sourceIds 只能引用本轮来源编号。卡片内容必须确实属于对应问项，不能把“来源中有这条信息”当作用户问了它。evidenceScope=quoted-content 只适用于引文原文直接支持的正面内容；retrieval-limit 专用于本轮没搜到、没抓到、官方资料未覆盖等检索边界，这类卡必须标 insufficient 且 quotes 为空，不能用“没看到”证明“官方从未说过/不存在”。若只查到相近名称或有限页面，要把结论严格限定为“本轮检索到的材料中”，并将未确认的对应关系作为缺口。sourceDisclosures 只摘录页面中直接说明账号/发布身份的原文，不做真实性判断；没有这种原文时返回空数组。优先覆盖用户实际问到的不同要点；多个检索词的结果可互相印证，但不得把同一页面重复计作多源证据。',
+      '输出 JSON：{"cards":[{"point":string,"requestedPointIds":[number],"finding":string,"evidenceScope":"quoted-content"|"retrieval-limit","status":"supported"|"conflicting"|"insufficient","quotes":[{"sourceId":number,"quote":string}]}],"reviewerNotes":[{"requestedPointIds":[number],"sourceIds":[number],"riskType":"entity"|"temporal"|"version"|"scope"|"identity"|"other","note":string}],"independenceAssessments":[{"requestedPointId":number,"sourceIds":[number,number],"status":"independent"|"syndicated"|"uncertain","rationale":string}],"sourceDisclosures":[{"sourceId":number,"quote":string}],"gaps":[{"requestedPointIds":[number],"text":string}],"followupQueries":[string]}。每个 independentSupportRequired 问项都必须给出至少一个针对同一机制的来源组合评估；status=independent 才可用于独立印证，来源关系无法确认必须是 uncertain；若只有0或1个来源，sourceIds 如实保留0或1项并标 uncertain，不得虚构第二来源，确认为转载/共用原稿则是 syndicated。不能只凭不同网址判断独立。reviewerNotes 只报具体来源适用风险，不得包含事实总结或把 finding 改名搬入；没有明确风险时必须返回空数组。requestedPointIds 只能使用输入中给出的编号，sourceIds 只能引用本轮来源编号。卡片内容必须确实属于对应问项，不能把“来源中有这条信息”当作用户问了它。evidenceScope=quoted-content 只适用于引文原文直接支持的正面内容；retrieval-limit 专用于本轮没搜到、没抓到、官方资料未覆盖等检索边界，这类卡必须标 insufficient 且 quotes 为空，不能用“没看到”证明“官方从未说过/不存在”。若只查到相近名称或有限页面，要把结论严格限定为“本轮检索到的材料中”，并将未确认的对应关系作为缺口。sourceDisclosures 只摘录页面中直接说明账号/发布身份的原文，不做真实性判断；没有这种原文时返回空数组。优先覆盖用户实际问到的不同要点；多个检索词的结果可互相印证，但不得把同一页面重复计作多源证据。',
     ].join("\n");
-    const gapAwareSystem = `${system}\n\n检索缺口绑定附加规则：每条 gaps 项请增加 sourceIds:number[]，只列你认定正文未覆盖该点的本轮来源编号；无法绑定具体页面时填空数组。gaps 应拆成原子子项，不要把‘页面未提及技能’与‘页面未说明它和某流派的关系’合并。答案审计会重新检查被点名页面的完整抓取正文。`;
+    const gapAwareSystem = `${system}\n\n检索缺口绑定附加规则：每条 gaps 项请增加 sourceIds:number[]，只列你认定正文未覆盖该点的本轮来源编号；无法绑定具体页面时填空数组。gaps 应拆成原子子项，不要把‘页面未提及技能’与‘页面未说明它和某流派的关系’合并。答案审计会重新检查被点名页面的已抓取正文，并遵守pageContentStatus/textIsPartial范围；截断材料不能证明整页不存在某信息。`;
     const history = (request.history ?? [])
       .slice(-8)
       .map((item) => ({ role: item.role, text: item.text.slice(0, 800) }));
@@ -1267,7 +1267,13 @@ export class GlmBrain implements Brain {
         author: source.author ?? "",
         published: source.publishDate ?? "",
         fullPageFetched: source.fullPageFetched === true,
-        content: source.content,
+        pageContentStatus: source.pageContentStatus ?? (source.verificationContent?.trim() ? "available" : "unavailable"),
+        content: source.content.slice(0, 3_000),
+        // The evidence reviewer must actually see page passages it is asked to quote.
+        // Preserve exact substrings; do not present the bounded selection as a complete page.
+        pageContentExcerpt: selectPageEvidenceExcerpt(source.verificationContent ?? "", [request.text, ...queries, ...requestedPoints.map((point) => point.text)]),
+        pageContentExcerptIsPartial: (source.verificationContent?.length ?? 0) > 4_000
+          || source.pageContentStatus === "truncated",
       })),
     });
     const requiredIndependentPointIds = requestedPoints
@@ -1300,7 +1306,8 @@ export class GlmBrain implements Brain {
           if (!value || typeof value !== "object" || Array.isArray(value)) return false;
           const assessment = value as Record<string, unknown>;
           return assessment.requestedPointId === pointId &&
-            Array.isArray(assessment.sourceIds) && assessment.sourceIds.length >= 2 &&
+            Array.isArray(assessment.sourceIds) &&
+            (assessment.status === "uncertain" || new Set(assessment.sourceIds).size >= 2) &&
             assessment.sourceIds.length <= 6 &&
             assessment.sourceIds.every((sourceId) => Number.isInteger(sourceId) && Number(sourceId) >= 1 && Number(sourceId) <= sources.length) &&
             ["independent", "syndicated", "uncertain"].includes(String(assessment.status)) &&
@@ -1312,7 +1319,9 @@ export class GlmBrain implements Brain {
             requiredIndependentPointIds.some((pointId) =>
               !assessments.some((assessment) => validAssessmentForPoint(assessment, pointId))));
         if (!Array.isArray(parsed.cards) || parsed.cards.length > MAX_REVIEWED_EVIDENCE_CARDS ||
-          parsed.cards.some((card) => !card || !Array.isArray((card as Record<string, unknown>).quotes) ||
+          parsed.cards.some((card) => !card || !Array.isArray((card as Record<string, unknown>).requestedPointIds) ||
+            ((card as Record<string, unknown>).requestedPointIds as unknown[]).length !== 1 ||
+            !Array.isArray((card as Record<string, unknown>).quotes) ||
             ((card as Record<string, unknown>).quotes as unknown[]).length > MAX_QUOTES_PER_EVIDENCE_CARD + 2) ||
           !Array.isArray(parsed.gaps) || parsed.gaps.length > 6 ||
           !Array.isArray(parsed.reviewerNotes) || parsed.reviewerNotes.length > 6 ||
@@ -1358,7 +1367,7 @@ export class GlmBrain implements Brain {
         !candidate ||
         typeof candidate.point !== "string" ||
         !Array.isArray(candidate.requestedPointIds) ||
-        candidate.requestedPointIds.length === 0 ||
+        candidate.requestedPointIds.length !== 1 ||
         candidate.requestedPointIds.some((id) => !requestedPoints.some((point) => point.id === id)) ||
         typeof candidate.finding !== "string" ||
         !["quoted-content", "retrieval-limit"].includes(String(candidate.evidenceScope)) ||
@@ -1472,12 +1481,12 @@ export class GlmBrain implements Brain {
             const item = candidate as Record<string, unknown>;
             if (!Number.isInteger(item.requestedPointId) ||
               !requiredIndependentPointIds.includes(Number(item.requestedPointId)) ||
-              !Array.isArray(item.sourceIds) || item.sourceIds.length < 2 || item.sourceIds.length > 6 ||
+              !Array.isArray(item.sourceIds) || item.sourceIds.length > 6 ||
               item.sourceIds.some((id) => !Number.isInteger(id) || Number(id) < 1 || Number(id) > sources.length) ||
               !["independent", "syndicated", "uncertain"].includes(String(item.status)) ||
               typeof item.rationale !== "string" || [...item.rationale.trim()].length < 8 || [...item.rationale.trim()].length > 240) return [];
             const sourceIds = [...new Set(item.sourceIds as number[])];
-            if (sourceIds.length < 2) return [];
+            if (item.status !== "uncertain" && sourceIds.length < 2) return [];
             const groupIds = new Set(sourceIds.map((sourceId) => evidenceGroups.get(sourceId)).filter((id): id is number => id !== undefined));
             const status = item.status === "independent" && groupIds.size < 2 ? "uncertain" : item.status as "independent" | "syndicated" | "uncertain";
             return [{ requestedPointId: item.requestedPointId as number, sourceIds, status, rationale: item.rationale.trim() }];
@@ -1489,7 +1498,9 @@ export class GlmBrain implements Brain {
     ]);
     const sourceCoveragePages = sources.flatMap((source, index) =>
       coverageSourceIds.has(index + 1) && source.fullPageFetched && source.verificationContent?.trim()
-        ? [{ sourceId: index + 1, title: source.title, link: source.link, text: source.verificationContent.slice(0, 12_000) }]
+        ? [{ sourceId: index + 1, title: source.title, link: source.link, text: source.verificationContent.slice(0, 12_000),
+          pageContentStatus: source.pageContentStatus,
+          textIsPartial: source.pageContentStatus === "truncated" || source.verificationContent.length >= 12_000 }]
         : [],
     ).slice(0, 8);
     return {
@@ -1507,7 +1518,23 @@ export class GlmBrain implements Brain {
     };
   }
   async reply(request: BrainRequest): Promise<BrainResponse> {
+    request.signal?.throwIfAborted();
+    if (!this.options.webSearch) return this.replyWithinDeadline(request);
+    try {
+      return await runWithDeadline(this.options.researchTimeoutMs ?? 180_000,
+        request.signal, "Web research turn", (signal) => this.replyWithinDeadline({ ...request, signal }));
+    } catch (error) {
+      if (request.signal?.aborted) throw error;
+      if (error instanceof RequestTimeoutError) return {
+        provider: "glm",
+        text: "这轮联网处理已达到总时间上限，搜索或核验还没有完成；我先停下，不把未完成的结果当作查证结论。",
+      };
+      throw error;
+    }
+  }
+  private async replyWithinDeadline(request: BrainRequest): Promise<BrainResponse> {
     const messages = await this.initialMessages(request);
+    request.signal?.throwIfAborted();
     if (!this.options.webSearch) {
       const message = await this.complete(
         messages,
@@ -1560,6 +1587,7 @@ export class GlmBrain implements Brain {
       const results: WebSearchResult[] = [];
       const retrievalFailures: string[] = [];
       for (const focusedQuery of focusedQueries) {
+        request.signal?.throwIfAborted();
         try {
           const found = await this.options.webSearch.searchWithFallback(
             focusedQuery,
@@ -1641,15 +1669,18 @@ export class GlmBrain implements Brain {
         let followupEvidenceChanged = false;
         const knownLinks = new Set(uniqueReadable.map((source) => source.link));
         for (const query of followupQueries) {
+          request.signal?.throwIfAborted();
           try {
             const found = await this.options.webSearch.searchWithFallback(
               query,
               request.signal,
               searchContext,
             );
-            for (const source of bindSearchResultsToQuery(found, query)) {
-              const link = safeSearchLink(source.link);
-              if (!link) continue;
+            request.signal?.throwIfAborted();
+            for (const candidate of bindSearchResultsToQuery(found, query)) {
+              const source = prepareSearchCandidate(candidate);
+              if (!source) continue;
+              const link = source.link;
               const key = link;
               const existingIndex = uniqueReadable.findIndex((item) => item.link === link);
               if (existingIndex >= 0) {
@@ -1658,7 +1689,7 @@ export class GlmBrain implements Brain {
                 const addedText = normalizeEvidencePassage(sourceVerificationText({
                   ...source,
                   link,
-                  searchExcerpts: [{ query, text: source.content }],
+                  searchExcerpts: source.searchExcerpts ?? [{ query, text: source.content }],
                 }));
                 if ((addedText && !priorText.includes(addedText)) ||
                   (!existing.author && Boolean(source.author)) ||
@@ -1669,12 +1700,12 @@ export class GlmBrain implements Brain {
                 uniqueReadable[existingIndex] = mergeSearchResultPassages(uniqueReadable[existingIndex]!, {
                   ...source,
                   link,
-                  searchExcerpts: [{ query, text: source.content }],
+                  searchExcerpts: source.searchExcerpts ?? [{ query, text: source.content }],
                 });
               } else if (!knownLinks.has(key) && uniqueReadable.length < MAX_WEB_SEARCH_CANDIDATES) {
                 followupEvidenceChanged = true;
                 knownLinks.add(key);
-                const searchExcerpts = [{ query, text: source.content }];
+                const searchExcerpts = source.searchExcerpts ?? [{ query, text: source.content }];
                 uniqueReadable.push({ ...source, link, searchExcerpts,
                   content: fitSearchExcerpts(searchExcerpts, 3_000) });
               }
@@ -1798,15 +1829,20 @@ function mergeTargetedAnswerRepair(
     return [{ originalIndex: target.originalIndex, replacementIndex, claim }];
   });
   const replacementLimitations = replacement.limitations.flatMap((candidate, replacementIndex) => {
-    const target = plan.rejectedLimitations.find((entry) =>
-      entry.originalIndex === candidate.repairTargetOriginalIndex &&
-      requestedPointsOverlap(candidate.requestedPointIds, entry.limitation.requestedPointIds));
+    const targetKind = candidate.repairTargetKind ?? "limitation";
+    const targets = targetKind === "claim"
+      ? plan.rejectedClaims.map((entry) => ({ originalIndex: entry.originalIndex, pointIds: entry.claim.requestedPointIds }))
+      : plan.rejectedLimitations.map((entry) => ({ originalIndex: entry.originalIndex, pointIds: entry.limitation.requestedPointIds }));
+    const target = targets.find((entry) => entry.originalIndex === candidate.repairTargetOriginalIndex &&
+      requestedPointsOverlap(candidate.requestedPointIds, entry.pointIds));
     if (!target) return [];
-    const { repairTargetOriginalIndex: _repairTargetOriginalIndex, ...limitation } = candidate;
-    return [{ originalIndex: target.originalIndex, replacementIndex, limitation }];
+    const { repairTargetOriginalIndex: _index, repairTargetKind: _kind, ...limitation } = candidate;
+    return [{ originalIndex: target.originalIndex, replacementIndex, targetKind, limitation }];
   });
-  if ((plan.rejectedClaims.length > 0 && replacementClaims.length === 0)
-    || (plan.rejectedLimitations.length > 0 && replacementLimitations.length === 0)) {
+  if ((plan.rejectedClaims.length > 0 && replacementClaims.length === 0
+      && !replacementLimitations.some((item) => item.targetKind === "claim"))
+    || (plan.rejectedLimitations.length > 0
+      && !replacementLimitations.some((item) => item.targetKind === "limitation"))) {
     return { ok: false, reason: "targeted repair returned no claim/limitation tied to the rejected evidence references" };
   }
   const answer = {
@@ -1888,7 +1924,9 @@ export function parseStructuredResearchAnswer(
       return { ok: false, reason: "claim schema mismatch" };
     }
     const repairTargetOriginalIndex = claim.repairTargetOriginalIndex;
-    if (requireCoverage && repairTargetOriginalIndex !== undefined)
+    if (claim.repairTargetKind !== undefined && claim.repairTargetKind !== "claim")
+      return { ok: false, reason: "a factual claim cannot target a limitation repair" };
+    if (requireCoverage && (repairTargetOriginalIndex !== undefined || claim.repairTargetKind !== undefined))
       return { ok: false, reason: "repair target metadata is only allowed in a targeted repair" };
     if (!requireCoverage && (!Number.isInteger(repairTargetOriginalIndex)
       || !allowedRepairTargetIndexes?.includes(Number(repairTargetOriginalIndex))))
@@ -1905,10 +1943,10 @@ export function parseStructuredResearchAnswer(
         reason: "claims must cite exact evidenceRefs, not broad evidence cards",
       };
     const text = claim.text.trim();
-    if (!text || [...text].length > 320)
+    if (!text || [...text].length > 320 || hasModelCitationOrLink(text))
       return {
         ok: false,
-        reason: "claim text is empty or exceeds 320 characters",
+        reason: "claim text is empty, exceeds 320 characters, or contains model-authored citations/links",
       };
     const evidenceRefs: Array<{ cardId: number; quoteId: number }> = [];
     const sourceIds = new Set<number>();
@@ -1934,6 +1972,7 @@ export function parseStructuredResearchAnswer(
       const quote = card.quotes[value.quoteId];
       if (
         (card.status !== "supported" && card.status !== "conflicting") ||
+        card.requestedPointIds.length !== 1 ||
         !quote ||
         !card.requestedPointIds.some((pointId) =>
           (claim.requestedPointIds as number[]).includes(pointId),
@@ -1963,14 +2002,17 @@ export function parseStructuredResearchAnswer(
     if (!(claim.requestedPointIds as number[]).every((pointId) =>
       citedPointIds.has(pointId),
     )) continue;
-    const citedSourceIds = evidenceRefs.map((ref) =>
-      evidence.cards[ref.cardId - 1]!.quotes[ref.quoteId]!.sourceId);
-    if (!claimMeetsIndependentEvidenceRequirement(
-      claim.requestedPointIds as number[],
-      citedSourceIds,
-      requestedPoints,
-      sources,
-      evidence.independenceAssessments,
+    // A citation used for another question cannot supply this question's
+    // independent support, even when both appear in the same claim.
+    if (!(claim.requestedPointIds as number[]).every((pointId) =>
+      claimMeetsIndependentEvidenceRequirement(
+        [pointId],
+        evidenceRefs.filter((ref) => evidence.cards[ref.cardId - 1]!.requestedPointIds[0] === pointId)
+          .map((ref) => evidence.cards[ref.cardId - 1]!.quotes[ref.quoteId]!.sourceId),
+        requestedPoints,
+        sources,
+        evidence.independenceAssessments,
+      ),
     )) continue;
     const citedKinds = new Set(
       sources
@@ -1987,7 +2029,7 @@ export function parseStructuredResearchAnswer(
       requestedPointIds: [...new Set(claim.requestedPointIds as number[])],
       evidenceRefs,
       group: claim.group,
-      sourceIds: [...sourceIds].slice(0, 4),
+      sourceIds: [...sourceIds],
       sourceAttribution,
       ...(requireCoverage ? {} : { repairTargetOriginalIndex: Number(repairTargetOriginalIndex) }),
     });
@@ -2013,7 +2055,9 @@ export function parseStructuredResearchAnswer(
     )
       continue;
     const repairTargetOriginalIndex = limitation.repairTargetOriginalIndex;
-    if (requireCoverage && repairTargetOriginalIndex !== undefined)
+    const repairTargetKind = limitation.repairTargetKind;
+    if (repairTargetKind !== undefined && repairTargetKind !== "claim" && repairTargetKind !== "limitation") continue;
+    if (requireCoverage && (repairTargetOriginalIndex !== undefined || repairTargetKind !== undefined))
       return { ok: false, reason: "repair target metadata is only allowed in a targeted repair" };
     if (!requireCoverage && (!Number.isInteger(repairTargetOriginalIndex)
       || !allowedRepairTargetIndexes?.includes(Number(repairTargetOriginalIndex))))
@@ -2021,12 +2065,13 @@ export function parseStructuredResearchAnswer(
     if ("sourceIds" in limitation || "evidenceRefs" in limitation)
       continue;
     const text = limitation.text.trim();
-    if (!text || [...text].length > 320)
+    if (!text || [...text].length > 320 || hasModelCitationOrLink(text))
       continue;
     const cardIds = [...new Set(limitation.cardIds)];
     if (cardIds.some((cardId) => typeof cardId !== "number" || !Number.isInteger(cardId)
       || cardId < 1 || cardId > evidence.cards.length
-      || evidence.cards[cardId - 1]!.status !== "insufficient"))
+      || evidence.cards[cardId - 1]!.status !== "insufficient"
+      || evidence.cards[cardId - 1]!.requestedPointIds.length !== 1))
       // A bad limitation must never be rendered, but it should not discard
       // independently grounded claims in the same answer. The answer auditor
       // still checks whether dropping it leaves an explicit question unanswered
@@ -2047,8 +2092,11 @@ export function parseStructuredResearchAnswer(
       requestedPointIds: [...new Set(limitation.requestedPointIds as number[])],
       cardIds,
       group: limitation.group,
-      sourceIds: [...sourceIds].slice(0, 4),
-      ...(requireCoverage ? {} : { repairTargetOriginalIndex: Number(repairTargetOriginalIndex) }),
+      sourceIds: [...sourceIds],
+      ...(requireCoverage ? {} : {
+        repairTargetOriginalIndex: Number(repairTargetOriginalIndex),
+        ...(repairTargetKind === undefined ? {} : { repairTargetKind }),
+      }),
     });
     totalCharacters += [...text].length;
   }
@@ -2104,7 +2152,7 @@ export function claimMeetsIndependentEvidenceRequirement(
 }
 export function parseResearchNarrative(
   raw: string,
-  approvedPoints: ReadonlyArray<{ id: number; requestedPointIds: number[]; kind: string }>,
+  approvedPoints: ReadonlyArray<{ id: number; text: string; requestedPointIds: number[]; kind: string }>,
 ): ResearchNarrative | undefined {
   let parsed: { paragraphs?: unknown };
   try {
@@ -2113,6 +2161,9 @@ export function parseResearchNarrative(
     return undefined;
   }
   if (!Array.isArray(parsed.paragraphs) || parsed.paragraphs.length < 1 || parsed.paragraphs.length > 10)
+    return undefined;
+  if (approvedPoints.some((point) => typeof point.text !== "string" || !point.text.trim()
+    || hasModelCitationOrLink(point.text)) || new Set(approvedPoints.map((point) => point.id)).size !== approvedPoints.length)
     return undefined;
   const paragraphs: ResearchNarrative["paragraphs"] = [];
   const seen = new Set<number>();
@@ -2130,9 +2181,8 @@ export function parseResearchNarrative(
   for (const candidate of parsed.paragraphs) {
     if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return undefined;
     const paragraph = candidate as Record<string, unknown>;
-    if (typeof paragraph.text !== "string" || !Array.isArray(paragraph.claimRefs)) return undefined;
-    const text = paragraph.text.trim();
-    if (!text || [...text].length > 400 || paragraph.claimRefs.length < 1) return undefined;
+    if (!Array.isArray(paragraph.claimRefs) || paragraph.claimRefs.length < 1
+      || Object.keys(paragraph).some((key) => key !== "claimRefs" && key !== "text")) return undefined;
     const claimRefs: number[] = [];
     for (const reference of paragraph.claimRefs) {
       if (typeof reference !== "number" || !Number.isInteger(reference)
@@ -2145,6 +2195,10 @@ export function parseResearchNarrative(
           coveredFactPointIds.add(pointId);
       claimRefs.push(reference);
     }
+    // IDs alone select immutable, already-audited sentences. Legacy text is
+    // accepted only when it is exactly this deterministic assembly.
+    const text = claimRefs.map((id) => approvedById.get(id)!.text).join(" ");
+    if ([...text].length > 400 || ("text" in paragraph && paragraph.text !== text)) return undefined;
     paragraphs.push({ text, claimRefs });
     totalCharacters += [...text].length;
   }
@@ -2176,16 +2230,18 @@ export function parseResearchNarrative(
 
 function renderResearchNarrative(
   narrative: ResearchNarrative,
-  items: Array<{ id: number; sourceIds: number[] }>,
+  items: Array<{ id: number; text: string; sourceIds: number[] }>,
   evidence: ReviewedEvidence,
   sources: EvidenceSource[],
 ): string {
-  const paragraphs = narrative.paragraphs.map((paragraph) => {
-    const sourceIds = [...new Set(paragraph.claimRefs.flatMap((id) => items[id - 1]!.sourceIds))];
-    const citationMarkers = sourceIds.map((id) => `[${id}]`).join("");
-    return `${paragraph.text}${citationMarkers ? ` ${citationMarkers}` : ""}`;
-  });
-  return appendVerifiedSourceLinks(paragraphs.join("\n\n"), evidence, sources);
+  const itemsById = new Map(items.map((item) => [item.id, item]));
+  const paragraphs = narrative.paragraphs.map((paragraph) => paragraph.claimRefs.map((id) => {
+    const item = itemsById.get(id)!;
+    const citationMarkers = item.sourceIds.map((sourceId) => `[${sourceId}]`).join("");
+    return `${item.text}${citationMarkers ? ` ${citationMarkers}` : ""}`;
+  }).join(" "));
+  return appendVerifiedSourceLinks(paragraphs.join("\n\n"), evidence, sources,
+    narrative.paragraphs.flatMap((paragraph) => paragraph.claimRefs.flatMap((id) => itemsById.get(id)!.sourceIds)));
 }
 
 function renderResearchAnswer(
@@ -2220,7 +2276,8 @@ function renderResearchAnswer(
     body,
     evidence,
     sources,
-    answer.limitations.flatMap((limitation) => limitation.sourceIds),
+    [...answer.claims.flatMap((claim) => claim.sourceIds),
+      ...answer.limitations.flatMap((limitation) => limitation.sourceIds)],
   );
 }
 export function formatEvidenceForAnswer(
@@ -2333,16 +2390,10 @@ function appendVerifiedSourceLinks(
   answer: string,
   evidence: ReviewedEvidence,
   sources: EvidenceSource[],
-  additionalSourceIds: number[] = [],
+  selectedSourceIds: number[],
 ): string {
-  const sourceIds = new Set(
-    evidence.cards
-      .filter(
-        (card) => card.status === "supported" || card.status === "conflicting",
-      )
-      .flatMap((card) => card.quotes.map((quote) => quote.sourceId)),
-  );
-  for (const sourceId of additionalSourceIds) sourceIds.add(sourceId);
+  // Only the selected sentences' program-derived bindings can mint links.
+  const sourceIds = new Set(selectedSourceIds);
   const citedSources = new Map(
     sources
       .filter((source) => sourceIds.has(source.sourceId) && source.link)
@@ -2361,7 +2412,7 @@ function appendVerifiedSourceLinks(
       const source = citedSources.get(Number(id));
       if (!source) return "";
       inlineSourceIds.add(source.sourceId);
-      return `[${sourceKindLabel(source.sourceKind)}${source.sourceId}](${source.link})`;
+      return `[${sourceKindLabel(source.sourceKind)}${source.sourceId}](${escapeCitationLink(source.link)})`;
     },
   );
   const citationIds = inlineSourceIds.size > 0 ? inlineSourceIds : sourceIds;
@@ -2369,7 +2420,7 @@ function appendVerifiedSourceLinks(
     const source = citedSources.get(id);
     return source
       ? [
-          `- [${sourceKindLabel(source.sourceKind)}${id}：${source.title}](${source.link})${source.author ? ` · 页面作者字段“${escapeMarkdownText(source.author)}”（未独立认证）` : ""}${evidence.sourceDisclosures
+          `- [${sourceKindLabel(source.sourceKind)}${id}：${escapeMarkdownText(source.title)}](${escapeCitationLink(source.link)})${source.author ? ` · 页面作者字段“${escapeMarkdownText(source.author)}”（未独立认证）` : ""}${evidence.sourceDisclosures
             .filter((disclosure) => disclosure.sourceId === id)
             .map((disclosure) => ` · 页面自述摘录（未独立认证）：“${escapeMarkdownText(disclosure.quote)}”`)
             .join("")}`,
@@ -2426,10 +2477,10 @@ function mergeSearchResultPassages(
   const searchExcerpts = [...new Map([
     ...(existing.searchExcerpts ?? [{ query: "", text: existing.content }]),
     ...(additional.searchExcerpts ?? [{ query: "", text: additional.content }]),
-  ].map((excerpt) => [{ ...excerpt, query: excerpt.query.trim(), text: excerpt.text.trim() }])
-    .filter(([excerpt]) => excerpt.text)
-    .map(([excerpt]) => [`${excerpt.provider ?? ""}\u0000${excerpt.query}\u0000${excerpt.text}`, excerpt] as const)).values()]
-    .slice(0, 5);
+  ].map((excerpt) => ({ ...excerpt, query: excerpt.query.trim(), text: excerpt.text.trim() }))
+    .filter((excerpt) => excerpt.text)
+    .map((excerpt) => [`${excerpt.provider ?? ""}\u0000${excerpt.query}\u0000${excerpt.text}`, excerpt] as const)).values()]
+    .slice(-MAX_SEARCH_EXCERPTS_PER_SOURCE);
   return {
     ...existing,
     title: existing.title || additional.title,
@@ -2442,6 +2493,7 @@ function mergeSearchResultPassages(
     searchRanks: mergeSearchRanks(existing.searchRanks, additional.searchRanks),
     verificationContent: existing.verificationContent || additional.verificationContent,
     fullPageFetched: existing.fullPageFetched || additional.fullPageFetched,
+    pageContentStatus: existing.verificationContent ? existing.pageContentStatus : additional.pageContentStatus ?? existing.pageContentStatus,
   };
 }
 function mergeSearchRanks(
@@ -2455,6 +2507,31 @@ function mergeSearchRanks(
     if (!previous || rank.rank < previous.rank) bestRankByList.set(key, rank);
   }
   return [...bestRankByList.values()];
+}
+/** Select bounded literal page windows for review; ranking is relevance, never proof. */
+export function selectPageEvidenceExcerpt(body: string, context: string[]): string {
+  if (body.length <= 4_000) return body;
+  const terms = new Set<string>();
+  for (const text of context) {
+    const normalized = text.toLocaleLowerCase();
+    for (const word of normalized.match(/[a-z0-9_-]{3,}/gu) ?? []) terms.add(word);
+    for (const phrase of normalized.match(/[\p{Script=Han}]{2,}/gu) ?? [])
+      for (let index = 0; index < phrase.length - 1; index += 1) terms.add(phrase.slice(index, index + 2));
+  }
+  const windows: Array<{ start: number; text: string; score: number }> = [];
+  for (let start = 0; start < body.length; start += 700) {
+    const text = body.slice(start, start + 900);
+    const normalized = text.toLocaleLowerCase();
+    windows.push({ start, text, score: [...terms].reduce((score, term) => score + (normalized.includes(term) ? 1 : 0), 0) });
+  }
+  const selected = [windows[0]!];
+  const ranked = windows.slice(1).sort((left, right) => right.score - left.score || left.start - right.start);
+  for (const candidate of ranked) {
+    if (selected.length >= 4) break;
+    if (selected.every((item) => Math.abs(item.start - candidate.start) >= 900)) selected.push(candidate);
+  }
+  return selected.sort((left, right) => left.start - right.start)
+    .map((item) => item.text).join("\n[正文片段省略]\n").slice(0, 4_000);
 }
 function sourceVerificationText(source: WebSearchResult): string {
   if (source.verificationContent?.trim()) return source.verificationContent;
@@ -2499,18 +2576,19 @@ export function prepareSearchCandidate(item: WebSearchResult): WebSearchResult |
   return {
     title: item.title.slice(0, 240),
     link,
-    author: item.author?.slice(0, 160),
+    author: typeof item.author === "string" ? item.author.slice(0, 160) : undefined,
     content: fitSearchExcerpts(item.searchExcerpts ?? [{ query: "", text: item.content }], 3_000),
-    media: item.media?.slice(0, 160),
-    publishDate: item.publishDate?.slice(0, 80),
-    verificationContent: item.verificationContent?.slice(0, 12_000),
+    media: typeof item.media === "string" ? item.media.slice(0, 160) : undefined,
+    publishDate: typeof item.publishDate === "string" ? item.publishDate.slice(0, 80) : undefined,
+    verificationContent: typeof item.verificationContent === "string" ? item.verificationContent.slice(0, 12_000) : undefined,
     fullPageFetched: item.fullPageFetched,
-    searchProviders: item.searchProviders?.slice(0, 2),
+    pageContentStatus: item.pageContentStatus,
+    searchProviders: item.searchProviders?.slice(0, 5),
     searchRanks: item.searchRanks?.slice(0, 15).flatMap((rank) =>
       Number.isInteger(rank.rank) && rank.rank >= 1 && rank.query.trim()
         ? [{ query: rank.query.slice(0, 120), provider: rank.provider, rank: rank.rank }]
         : []),
-    searchExcerpts: item.searchExcerpts?.slice(0, 5).map((excerpt) => ({
+    searchExcerpts: item.searchExcerpts?.slice(-MAX_SEARCH_EXCERPTS_PER_SOURCE).map((excerpt) => ({
       query: excerpt.query.slice(0, 120),
       text: excerpt.text.slice(0, 3_000),
       provider: excerpt.provider,
@@ -2715,6 +2793,15 @@ function escapeMarkdownText(value: string): string {
     .slice(0, 120)
     .replace(/[\\`*_{}\[\]()#+.!|>~]/gu, "\\$&");
 }
+function escapeCitationLink(value: string): string {
+  return value.replace(/\(/gu, "%28").replace(/\)/gu, "%29");
+}
+function hasModelCitationOrLink(text: string): boolean {
+  return /(?:https?:|javascript:|data:|file:|mailto:|www\.)/iu.test(text)
+    || /!?\[[^\]\n]*\]\s*(?:\(|\[|:)/u.test(text)
+    || /\[(?:(?:来源|官方来源|媒体来源|社区来源|未核实来源|发布方域名来源|上市公司披露平台来源|媒体平台来源|社区平台来源|未核实域名来源)\s*)?\d+\]|来源\s*\d+/iu.test(text)
+    || /<[^>]+>/u.test(text);
+}
 function stripModelLinks(answer: string): string {
   const lines = answer
     .replace(/\[([^\]]+)\]\(https?:\/\/[^)\s]+\)/giu, "$1")
@@ -2738,27 +2825,41 @@ function stripModelLinks(answer: string): string {
   return lines.join("\n").trim();
 }
 function extractJsonObject(value: string): string {
-  const start = value.indexOf("{");
-  if (start < 0) return value;
+  const trimmed = value.trim();
+  try {
+    const whole: unknown = JSON.parse(trimmed);
+    if (!whole || typeof whole !== "object" || Array.isArray(whole))
+      throw new Error("model JSON must be one object");
+    return trimmed;
+  } catch (error) {
+    if (!(error instanceof SyntaxError)) throw error;
+  }
+  const start = trimmed.indexOf("{");
+  if (start < 0 || /[\[\]{}]/u.test(trimmed.slice(0, start)))
+    throw new Error("model JSON must be one unambiguous object");
   let depth = 0;
   let inString = false;
   let escaped = false;
-  for (let index = start; index < value.length; index += 1) {
-    const character = value[index]!;
+  for (let index = start; index < trimmed.length; index += 1) {
+    const character = trimmed[index]!;
     if (inString) {
       if (escaped) escaped = false;
       else if (character === "\\") escaped = true;
-      else if (character === '"') inString = false;
+      else if (character === '\"') inString = false;
       continue;
     }
-    if (character === '"') inString = true;
+    if (character === '\"') inString = true;
     else if (character === "{") depth += 1;
     else if (character === "}") {
       depth -= 1;
-      if (depth === 0) return value.slice(start, index + 1);
+      if (depth === 0) {
+        if (/[\[\]{}]/u.test(trimmed.slice(index + 1)))
+          throw new Error("model returned multiple or wrapped JSON values");
+        return trimmed.slice(start, index + 1);
+      }
     }
   }
-  return value;
+  throw new Error("model JSON object was truncated");
 }
 function safeSearchLink(value: string): string {
   try {

@@ -1,0 +1,24 @@
+name: Search snapshot regressions
+on:
+  pull_request:
+  push:
+    branches: ['codex/**']
+permissions:
+  contents: read
+jobs:
+  search-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm test
+      - run: npm run check
+      - run: npm run typecheck:isolated
+      - run: npm run smoke:glm:isolated
+      - run: npm run smoke:providers:isolated
+      - run: git diff --check

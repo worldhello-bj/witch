@@ -1,0 +1,51 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> smoke:glm:isolated
+> node scripts/run-glm-smoke.mjs
+
+(node:71) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ISOLATED GLM SMOKE: personality prompt is a test double; no QQ/runtime/full-app claim.
+[witch-intent] model-output contentChars=32 reasoningChars=0 shape=object
+[web-search] planned contextual query="王者万象棋 白歌 墨世龙尘 祈愿活动"
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] natural expression format invalid; using verified structured answer
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] natural expression format invalid; using verified structured answer
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] follow-up evidence review failed; keeping the prior verified evidence and disclosing the unresolved gap: web evidence review returned invalid schema (cards=object, gaps=undefined) after one format repair
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+[web-search] semantic tool queries=["王者万象棋 马可养猪流 阵容 棋手 上阵英雄","王者万象棋 马可养猪流 运营阶段 条件","王者万象棋 马可养猪流 适用版本"]
+[web-search] ignored an unbound evidence-review risk note; only validated source-bound notes are retained
+glm smoke: ok

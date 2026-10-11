@@ -1,0 +1,17 @@
+[
+  {
+    "originalPath": "src/brain/glm.ts",
+    "sha256": "9094ea93c3330d3284d34998dd5d89d735317c043f9e1a01de9d738c10eed5f7",
+    "appliedBytesEqualRepairedSnapshot": true
+  },
+  {
+    "originalPath": "src/brain/web-search.ts",
+    "sha256": "c9d5ba08d85eaa5531deacfcc4526156b671802a9f01c855a139436661c208c4",
+    "appliedBytesEqualRepairedSnapshot": true
+  },
+  {
+    "originalPath": "scripts/glm-smoke.mjs",
+    "sha256": "26524912dc210697ed3500a235258edf9f4763f919a4f6eec6420883fe4bf706",
+    "appliedBytesEqualRepairedSnapshot": true
+  }
+]

@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {loadSnapshot} from '../tests/support/load-snapshot.mjs';
+globalThis.__witchWebSnapshot=await loadSnapshot('web-search');
+const source=await fs.readFile(new URL('../current-source/web-search-smoke.mjs',import.meta.url),'utf8');
+const start=source.indexOf('const originalFetch = globalThis.fetch;');
+assert.ok(start>=0,'supplied provider-contract smoke boundary must exist');
+const prelude=`import assert from 'node:assert/strict';\nconst {ExaWebSearch,BraveLlmContextSearch,TavilyWebSearch,BaiduWebSearch,ExaBraveWebSearch,ZhipuWebSearch}=globalThis.__witchWebSnapshot;\n`;
+console.log('PROVIDER CONTRACT SUBSET: mocked fetch only; missing runtime/budget helper tests not run.');
+await import('data:text/javascript;base64,'+Buffer.from(prelude+source.slice(start)).toString('base64'));

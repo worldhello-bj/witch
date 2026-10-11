@@ -1,0 +1,14 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> check
+> node scripts/check-snapshots.mjs
+
+TypeScript syntax/transformation passed: config.ts
+(node:101) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TypeScript syntax/transformation passed: glm.ts
+TypeScript syntax/transformation passed: http-json.ts
+TypeScript syntax/transformation passed: index.ts
+TypeScript syntax/transformation passed: types.ts
+TypeScript syntax/transformation passed: web-search.ts
+This is a syntax check, not a whole-application type check.

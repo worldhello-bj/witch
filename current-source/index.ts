@@ -76,7 +76,7 @@ async function main(): Promise<void> {
           : new ZhipuWebSearch({
           apiKey: config.glmApiKey!,
           baseUrl: config.glmBaseUrl,
-          timeoutMs: config.glmTimeoutMs,
+          timeoutMs: config.glmWebSearchTimeoutMs,
           engines: config.glmWebSearchEngines,
           count: config.glmWebSearchCount,
           contentSize: config.glmWebSearchContentSize,
@@ -89,6 +89,7 @@ async function main(): Promise<void> {
         reasoningEffort: config.glmReasoningEffort,
         maxTokens: config.glmMaxTokens,
         timeoutMs: config.glmTimeoutMs,
+        researchTimeoutMs: config.glmWebSearchTurnTimeoutMs,
         webSearch,
       }, personality);
     if (config.codexTeacherEnabled) {

@@ -35,6 +35,8 @@ export interface Config {
   glmReasoningEffort: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
   glmMaxTokens: number;
   glmTimeoutMs: number;
+  glmWebSearchTimeoutMs: number;
+  glmWebSearchTurnTimeoutMs: number;
   glmWebSearchEnabled: boolean;
   glmWebSearchProvider: "exa" | "zhipu" | "brave" | "tavily" | "baidu" | "exa-brave" | "exa-tavily" | "exa-brave-tavily" | "exa-tavily-baidu";
   exaApiKey?: string;
@@ -108,6 +110,12 @@ export function loadConfig(): Config {
   if (!Number.isInteger(glmTimeoutMs) || glmTimeoutMs < 10_000 || glmTimeoutMs > 600_000) {
     throw new Error("GLM_TIMEOUT_MS must be between 10000 and 600000");
   }
+  const glmWebSearchTimeoutMs = Number(process.env.GLM_WEB_SEARCH_TIMEOUT_MS ?? "30000");
+  if (!Number.isInteger(glmWebSearchTimeoutMs) || glmWebSearchTimeoutMs < 1000 || glmWebSearchTimeoutMs > 120000)
+    throw new Error("GLM_WEB_SEARCH_TIMEOUT_MS must be between 1000 and 120000");
+  const glmWebSearchTurnTimeoutMs = Number(process.env.GLM_WEB_SEARCH_TURN_TIMEOUT_MS ?? "180000");
+  if (!Number.isInteger(glmWebSearchTurnTimeoutMs) || glmWebSearchTurnTimeoutMs < 10000 || glmWebSearchTurnTimeoutMs > 600000)
+    throw new Error("GLM_WEB_SEARCH_TURN_TIMEOUT_MS must be between 10000 and 600000");
   const webSearchValue = (process.env.GLM_WEB_SEARCH_ENABLED ?? "false").trim().toLowerCase();
   if (webSearchValue !== "true" && webSearchValue !== "false") {
     throw new Error("GLM_WEB_SEARCH_ENABLED must be true or false");
@@ -202,6 +210,8 @@ export function loadConfig(): Config {
     glmReasoningEffort: glmReasoningEffort as Config["glmReasoningEffort"],
     glmMaxTokens,
     glmTimeoutMs,
+    glmWebSearchTimeoutMs,
+    glmWebSearchTurnTimeoutMs,
     glmWebSearchEnabled: webSearchValue === "true",
     glmWebSearchProvider: glmWebSearchProvider as Config["glmWebSearchProvider"],
     exaApiKey,

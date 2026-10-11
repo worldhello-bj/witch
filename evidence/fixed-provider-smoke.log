@@ -1,0 +1,25 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> smoke:providers:isolated
+> node scripts/run-provider-smoke.mjs
+
+(node:96) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PROVIDER CONTRACT SUBSET: mocked fetch only; missing runtime/budget helper tests not run.
+[web-search] provider=exa results=2 request=exa-smoke-1
+[web-search] provider=exa contents=1/1 request=exa-contents-smoke-1 estimatedCostUsd=0.006000
+[web-search] engine=search_pro results=0 query="最近新出的游戏细节"
+[web-search] engine=search_pro_quark results=1 query="最近新出的游戏细节"
+[web-search] provider=brave-llm-context results=2 query="游戏规则具体机制"
+[web-search] provider=tavily results=1 credits=1 query="游戏规则具体机制"
+[web-search] provider=baidu results=1 query="公开游戏规则的具体机制"
+[web-search] providers=exa,brave,tavily results=4 query="作品规则"
+[web-search] provider=tavily results=1 credits=1 query="query"
+[web-search] providers=exa,tavily results=2 query="query"
+[web-search] provider=tavily results=1 credits=1 query="query"
+[web-search] providers=exa,tavily,baidu results=3 query="query"
+[web-search] provider=exa failed; retaining the independent index result
+[web-search] providers=exa,brave results=1 query="query"
+[web-search] provider=exa failed; retaining the independent index result
+[web-search] provider=brave failed; retaining the independent index result
+web search smoke: ok
