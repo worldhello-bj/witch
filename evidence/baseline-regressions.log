@@ -1,0 +1,841 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> test
+> node --test --test-concurrency=1 tests/*.test.mjs
+
+[web-search] natural expression failed; using verified structured answer Error: owner stopped
+    at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/grounding.test.mjs:58:56)
+    at Test.runInAsyncScope (node:async_hooks:227:14)
+    at Test.run (node:internal/test_runner/test:1382:25)
+    at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    at Test.postRun (node:internal/test_runner/test:1522:19)
+    at Test.run (node:internal/test_runner/test:1447:12)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+(node:72) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✖ expression selects already-audited natural sentences (2.728477ms)
+✖ rejects Sunset role/strength embellishment even with every valid citation ID (1.009975ms)
+✖ rejects lost triggering condition even with every valid citation ID (0.380197ms)
+✖ rejects absence promoted to negative fact even with every valid citation ID (0.351534ms)
+✖ rejects Marco invented other-side identity even with every valid citation ID (0.737017ms)
+✖ rejects Nezha contradictory occurrence even with every valid citation ID (0.308078ms)
+✔ legacy text is accepted only if identical to selected approved sentences (0.31031ms)
+✖ coverage requires a fact and all limitations; duplicate and unknown IDs fail closed (6.837121ms)
+✖ cannot borrow a card-wide second question with only its first quote (1.089868ms)
+✔ multi-question claim can cite a separate atomic card for each question (0.401922ms)
+✖ independence must be supported by quotes for the same question (0.43773ms)
+✔ actual per-question independent quotes still pass (0.353689ms)
+✖ expression cancellation propagates instead of returning an apparently completed answer (2.999172ms)
+✖ citations remain next to the exact approved sentence, not laundered over an entire paragraph (0.982318ms)
+[web-search] provider=brave failed; retaining the independent index result
+[web-search] providers=exa,brave results=1 query="q"
+[web-search] providers=exa,brave results=1 query="q"
+[web-search] fallback engine=search_pro failed: cancel
+[web-search] fallback engine=search_pro_quark failed: cancel
+[web-search] fallback engine=search_pro_sogou failed: cancel
+[web-search] fallback engine=search_pro failed: temporary
+(node:81) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✖ rejects model-authored citation/link: 事实。[2] (3.884139ms)
+✖ rejects model-authored citation/link: 事实。来源2 (0.443321ms)
+✖ rejects model-authored citation/link: 事实。[媒体平台来源2] (0.269347ms)
+✖ rejects model-authored citation/link: [伪造](https://fake.invalid/) (0.195542ms)
+✖ rejects model-authored citation/link: https://fake.invalid/ (0.225117ms)
+✖ rejects model-authored citation/link: [伪造](/relative) (0.291476ms)
+✖ rejects model-authored citation/link: [伪造][label] (0.250566ms)
+✖ rejects model-authored citation/link: <a href="//fake.invalid">链接</a> (0.181529ms)
+✖ model-authored citation/link in a limitation is also discarded (0.547317ms)
+✖ all five cited sources remain visible instead of truncating the last source (1.818777ms)
+✖ gap-only answer does not advertise unrelated supported sources as citations (1.506037ms)
+✖ source title cannot manufacture a Markdown link and target parentheses are encoded (6.78241ms)
+✖ sixth follow-up excerpt survives with provider provenance and a bounded display (1.410007ms)
+✖ excerpt bounds retain newest information and fetched page remains authoritative (1.06803ms)
+✖ multi-question evidence card is repaired, never cloned onto both questions (3.013037ms)
+✖ repeated multi-question card fails closed after the one bounded repair (2.759721ms)
+✖ independence uncertainty admits 0 actual sources without fabricating another (1.086052ms)
+✖ independence uncertainty admits 1 actual sources without fabricating another (0.28726ms)
+✖ one source still cannot masquerade as an independent pair (1.49396ms)
+✖ rejected claim may explicitly downgrade to a real insufficient-card limitation (0.647573ms)
+✔ claim-to-gap downgrade requires an explicit kind; matching numeric index is insufficient (0.505196ms)
+✔ downgrade to supported card is rejected instead of laundering a fact as a gap (0.177918ms)
+✖ composite provider abort is not degraded to partial success (2.664366ms)
+✖ already-cancelled composite invokes no provider (0.720325ms)
+✖ Zhipu stops engine fallback when the owner cancels (1.30262ms)
+✔ ordinary provider outage still allows fallback (0.289222ms)
+✖ factual repair cannot silently target the same-index limitation (0.281325ms)
+✖ initial answer rejects repair kind metadata even without a target index (0.650182ms)
+✔ ordinary factual repair may explicitly identify its claim target (0.290174ms)
+ℹ tests 43
+ℹ suites 0
+ℹ pass 7
+ℹ fail 36
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 583.033146
+
+✖ failing tests:
+
+test at tests/grounding.test.mjs:18:1
+✖ expression selects already-audited natural sentences (2.728477ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + undefined
+  - '阿科米娅在开战前提供临时等级。 司空震在觉醒时获得全部效果。 本轮材料未确认正式服版本与两种描述的关系。'
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/grounding.test.mjs:20:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: '阿科米娅在开战前提供临时等级。 司空震在觉醒时获得全部效果。 本轮材料未确认正式服版本与两种描述的关系。',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/grounding.test.mjs:28:4
+✖ rejects Sunset role/strength embellishment even with every valid citation ID (1.009975ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + {
+  +   paragraphs: [
+  +     {
+  +       claimRefs: [
+  +         1,
+  +         2,
+  +         3
+  +       ],
+  +       text: '阿科米娅是唯一核心，当前关注度和压制力都很突出。'
+  +     }
+  +   ]
+  + }
+  - undefined
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/grounding.test.mjs:29:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { paragraphs: [ [Object] ] },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/grounding.test.mjs:28:4
+✖ rejects lost triggering condition even with every valid citation ID (0.380197ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + {
+  +   paragraphs: [
+  +     {
+  +       claimRefs: [
+  +         1,
+  +         2,
+  +         3
+  +       ],
+  +       text: '司空震每次都获得全部效果。'
+  +     }
+  +   ]
+  + }
+  - undefined
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/grounding.test.mjs:29:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { paragraphs: [ [Object] ] },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/grounding.test.mjs:28:4
+✖ rejects absence promoted to negative fact even with every valid citation ID (0.351534ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + {
+  +   paragraphs: [
+  +     {
+  +       claimRefs: [
+  +         1,
+  +         2,
+  +         3
+  +       ],
+  +       text: '正式服根本不存在这个玩法。'
+  +     }
+  +   ]
+  + }
+  - undefined
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/grounding.test.mjs:29:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { paragraphs: [ [Object] ] },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/grounding.test.mjs:28:4
+✖ rejects Marco invented other-side identity even with every valid citation ID (0.737017ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + {
+  +   paragraphs: [
+  +     {
+  +       claimRefs: [
+  +         1,
+  +         2,
+  +         3
+  +       ],
+  +       text: '上阵英雄马可波罗是编进阵容里真正打仗的棋子。'
+  +     }
+  +   ]
+  + }
+  - undefined
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/grounding.test.mjs:29:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { paragraphs: [ [Object] ] },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/grounding.test.mjs:28:4
+✖ rejects Nezha contradictory occurrence even with every valid citation ID (0.308078ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + {
+  +   paragraphs: [
+  +     {
+  +       claimRefs: [
+  +         1,
+  +         2,
+  +         3
+  +       ],
+  +       text: '实际上映日期仍然无法确认。'
+  +     }
+  +   ]
+  + }
+  - undefined
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/grounding.test.mjs:29:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { paragraphs: [ [Object] ] },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/grounding.test.mjs:35:1
+✖ coverage requires a fact and all limitations; duplicate and unknown IDs fail closed (6.837121ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(parseResearchNarrative(raw([{claimRefs:[1,3]}]),points))
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/grounding.test.mjs:38:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/grounding.test.mjs:40:1
+✖ cannot borrow a card-wide second question with only its first quote (1.089868ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/grounding.test.mjs:41:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/grounding.test.mjs:46:1
+✖ independence must be supported by quotes for the same question (0.43773ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/grounding.test.mjs:49:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/grounding.test.mjs:56:1
+✖ expression cancellation propagates instead of returning an apparently completed answer (2.999172ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/grounding.test.mjs:60:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /owner stopped/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/grounding.test.mjs:62:1
+✖ citations remain next to the exact approved sentence, not laundered over an entire paragraph (0.982318ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /已经审核的句子1。\s*\[媒体平台来源1\]\(https:\/\/example\.org\/1\)\s+已经审核的句子2。\s*\[媒体平台来源2\]/. Input:
+
+  '已经审核的句子1。 已经审核的句子2。 [媒体平台来源1](https://example.org/1)[媒体平台来源2](https://example.org/2)\n' +
+    '\n' +
+    '来源说明：引用材料中没有经本机发布方域名白名单确认的一手页面；媒体或社区资料不代表官方结论。\n' +
+    '\n' +
+    '来源索引：\n' +
+    '- [媒体平台来源1：来源1](https://example.org/1)\n' +
+    '- [媒体平台来源2：来源2](https://example.org/2)'
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/grounding.test.mjs:67:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '已经审核的句子1。 已经审核的句子2。 [媒体平台来源1](https://example.org/1)[媒体平台来源2](https://example.org/2)\n\n来源说明：引用材料中没有经本机发布方域名白名单确认的一手页面；媒体或社区资料不代表官方结论。\n\n来源索引：\n- [媒体平台来源1：来源1](https://example.org/1)\n- [媒体平台来源2：来源2](https://example.org/2)',
+    expected: /已经审核的句子1。\s*\[媒体平台来源1\]\(https:\/\/example\.org\/1\)\s+已经审核的句子2。\s*\[媒体平台来源2\]/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:20:2
+✖ rejects model-authored citation/link: 事实。[2] (3.884139ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:20:70)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:20:2
+✖ rejects model-authored citation/link: 事实。来源2 (0.443321ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:20:70)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:20:2
+✖ rejects model-authored citation/link: 事实。[媒体平台来源2] (0.269347ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:20:70)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:20:2
+✖ rejects model-authored citation/link: [伪造](https://fake.invalid/) (0.195542ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:20:70)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:20:2
+✖ rejects model-authored citation/link: https://fake.invalid/ (0.225117ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:20:70)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:20:2
+✖ rejects model-authored citation/link: [伪造](/relative) (0.291476ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:20:70)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:20:2
+✖ rejects model-authored citation/link: [伪造][label] (0.250566ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:20:70)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:20:2
+✖ rejects model-authored citation/link: <a href="//fake.invalid">链接</a> (0.181529ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:20:70)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:22:1
+✖ model-authored citation/link in a limitation is also discarded (0.547317ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:23:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:25:1
+✖ all five cited sources remain visible instead of truncating the last source (1.818777ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+      1,
+      2,
+      3,
+      4,
+  -   5
+    ]
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:28:39)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 1, 2, 3, 4 ],
+    expected: [ 1, 2, 3, 4, 5 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:31:1
+✖ gap-only answer does not advertise unrelated supported sources as citations (1.506037ms)
+  AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /来源索引|https:\/\//. Input:
+
+  '本轮无法核实此事。\n' +
+    '\n' +
+    '来源说明：引用材料中没有经本机发布方域名白名单确认的一手页面；媒体或社区资料不代表官方结论。\n' +
+    '\n' +
+    '来源索引：\n' +
+    '- [媒体平台来源1：页面1](https://example.org/1)'
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:34:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '本轮无法核实此事。\n\n来源说明：引用材料中没有经本机发布方域名白名单确认的一手页面；媒体或社区资料不代表官方结论。\n\n来源索引：\n- [媒体平台来源1：页面1](https://example.org/1)',
+    expected: /来源索引|https:\/\//,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:36:1
+✖ source title cannot manufacture a Markdown link and target parentheses are encoded (6.78241ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(text.includes('正常\\]\\(https://fake\\.invalid/\\) \\['))
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:40:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:43:1
+✖ sixth follow-up excerpt survives with provider provenance and a bounded display (1.410007ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(merged.searchExcerpts.some(x=>x.query==='follow-up'&&x.provider==='brave'))
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:47:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:51:1
+✖ excerpt bounds retain newest information and fetched page remains authoritative (1.06803ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  5 !== 15
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:54:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 5,
+    expected: 15,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:59:1
+✖ multi-question evidence card is repaired, never cloned onto both questions (3.013037ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  1 !== 2
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:63:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:65:1
+✖ repeated multi-question card fails closed after the one bounded repair (2.759721ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:67:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /after one format repair/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:69:28
+✖ independence uncertainty admits 0 actual sources without fabricating another (1.086052ms)
+  Error: web evidence review returned missing or invalid independenceAssessments for an explicitly independent-support question after one format repair
+      at GlmBrain.reviewWebEvidence (current-source/glm.ts:1025:36)
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:72:15)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/search-boundaries.test.mjs:69:28
+✖ independence uncertainty admits 1 actual sources without fabricating another (0.28726ms)
+  Error: web evidence review returned missing or invalid independenceAssessments for an explicitly independent-support question after one format repair
+      at GlmBrain.reviewWebEvidence (current-source/glm.ts:1025:36)
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:72:15)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests/search-boundaries.test.mjs:75:1
+✖ one source still cannot masquerade as an independent pair (1.49396ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:77:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /after one format repair/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:79:1
+✖ rejected claim may explicitly downgrade to a real insufficient-card limitation (0.647573ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  false !== true
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:84:85)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:97:1
+✖ composite provider abort is not degraded to partial success (2.664366ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:100:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /cancel/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:102:1
+✖ already-cancelled composite invokes no provider (0.720325ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:105:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /cancel/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:107:1
+✖ Zhipu stops engine fallback when the owner cancels (1.30262ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  3 !== 1
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:111:95)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 3,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:118:1
+✖ factual repair cannot silently target the same-index limitation (0.281325ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:119:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/search-boundaries.test.mjs:121:1
+✖ initial answer rejects repair kind metadata even without a target index (0.650182ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file:///workspace/shared/witch-search-review/repo/tests/search-boundaries.test.mjs:122:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

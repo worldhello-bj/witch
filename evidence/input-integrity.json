@@ -1,0 +1,154 @@
+{
+  "baseline": "da37de9dba2b460000e822a1613465f55671626a",
+  "scope": "Original committed handoff bytes, before this repair",
+  "files": [
+    {
+      "path": "changes.patch",
+      "expectedBytes": 343032,
+      "actualBytes": 337553,
+      "expectedSha256": "E5A835236C36A9C8E7E34DDABCEE4A4D88A018083A26C892252318B16F15A6AF",
+      "actualSha256": "0F338922572390402182D98E2E4D44919699B060C8EF21FA713C5A5FC1B0EA5B",
+      "matches": false,
+      "matchesAfterCRLFRestoration": true
+    },
+    {
+      "path": "HANDOFF.md",
+      "expectedBytes": 4256,
+      "actualBytes": 4256,
+      "expectedSha256": "4158D67EFB925FC188EC6F18E75FBE39E5B867F5EA10D3241C817E9805085089",
+      "actualSha256": "4158D67EFB925FC188EC6F18E75FBE39E5B867F5EA10D3241C817E9805085089",
+      "matches": true,
+      "matchesAfterCRLFRestoration": false
+    },
+    {
+      "path": "current-source/config.ts",
+      "expectedBytes": 12030,
+      "actualBytes": 11884,
+      "expectedSha256": "1E9918BAC14F2EEB5247C4A24CDC20DC69E3AFC09144C8B10343B418FC8CACC9",
+      "actualSha256": "AA343C3B335C96C3A674CE30D3971C02BE063B9EE931D47728B005464A5A71F2",
+      "matches": false,
+      "matchesAfterCRLFRestoration": false
+    },
+    {
+      "path": "current-source/glm-smoke.mjs",
+      "expectedBytes": 100106,
+      "actualBytes": 100018,
+      "expectedSha256": "7EC636881326DC8AA2E8CB83B15C6782FDE5980A81FC3FCA38909309E17505FB",
+      "actualSha256": "F38E7AFD5060B34ECCC372721732D9815C372CBA6C721BFA9C68FA0D89DA7ECD",
+      "matches": false,
+      "matchesAfterCRLFRestoration": false
+    },
+    {
+      "path": "current-source/glm.ts",
+      "expectedBytes": 156838,
+      "actualBytes": 156838,
+      "expectedSha256": "B0B334562B56EC828A8E8C1763DF6B8BFCE0C29F753BF122AB9AD228A868D630",
+      "actualSha256": "B0B334562B56EC828A8E8C1763DF6B8BFCE0C29F753BF122AB9AD228A868D630",
+      "matches": true,
+      "matchesAfterCRLFRestoration": false
+    },
+    {
+      "path": "current-source/index.ts",
+      "expectedBytes": 8240,
+      "actualBytes": 8123,
+      "expectedSha256": "C7697C160B208AD5901A0FC658F1790F36A6F8CA30817E908586F3E1B9CEFF86",
+      "actualSha256": "CEF415C34086B4112A01C72B7B7A5CE42478DA557265FA33B7A4768C6F0A46BA",
+      "matches": false,
+      "matchesAfterCRLFRestoration": false
+    },
+    {
+      "path": "current-source/types.ts",
+      "expectedBytes": 4607,
+      "actualBytes": 4520,
+      "expectedSha256": "24E28DA2FF606D5DC40445305F292430A1BC656B5638BA7B59A587E0F08A42C3",
+      "actualSha256": "54CE68704A63963C75B50DDE26B4CC249C2035B8A992EFFD00B98B7CCE081BEA",
+      "matches": false,
+      "matchesAfterCRLFRestoration": false
+    },
+    {
+      "path": "current-source/web-search-smoke.mjs",
+      "expectedBytes": 41752,
+      "actualBytes": 41431,
+      "expectedSha256": "4C805E3BBA7223AD9544B280481C9C2E7AEFC0A13A5606C8F0F7E3587F97F815",
+      "actualSha256": "77F05346FFF7CFCA133C99C0DA356845FBFFB83ABF056364886B16B6E33F89A6",
+      "matches": false,
+      "matchesAfterCRLFRestoration": false
+    },
+    {
+      "path": "current-source/web-search.ts",
+      "expectedBytes": 41909,
+      "actualBytes": 41537,
+      "expectedSha256": "188B849EA677023CE43EC27A7C8E1034FCD3522BE15BCDCFD261F536C4FF2A09",
+      "actualSha256": "B536E802333B04799814EF03DA0A9317AD1521DDAE168B83BFB0C7F1CDA68CC6",
+      "matches": false,
+      "matchesAfterCRLFRestoration": false
+    },
+    {
+      "path": "review/2026-10-11-web-search-mvp-expression.md",
+      "expectedBytes": 6033,
+      "actualBytes": 6033,
+      "expectedSha256": "4A68AEC26D484688DA491E5C3F8B8C5DF6104E9499134A0CD4A81BC24B7687E2",
+      "actualSha256": "4A68AEC26D484688DA491E5C3F8B8C5DF6104E9499134A0CD4A81BC24B7687E2",
+      "matches": true,
+      "matchesAfterCRLFRestoration": false
+    },
+    {
+      "path": "review/2026-10-11-web-search-provider-compare.md",
+      "expectedBytes": 17227,
+      "actualBytes": 17227,
+      "expectedSha256": "03C3B43B062B866183B2591198C5FDAA059236B6CB654E8D114EEDE9BCF2D62E",
+      "actualSha256": "03C3B43B062B866183B2591198C5FDAA059236B6CB654E8D114EEDE9BCF2D62E",
+      "matches": true,
+      "matchesAfterCRLFRestoration": false
+    },
+    {
+      "path": "review/2026-10-11-web-search-saved-answer-review.md",
+      "expectedBytes": 7817,
+      "actualBytes": 7817,
+      "expectedSha256": "D66C79D227005BCEA26F6536485FF0788217653EEDF0D6799BCD5306901A00C2",
+      "actualSha256": "D66C79D227005BCEA26F6536485FF0788217653EEDF0D6799BCD5306901A00C2",
+      "matches": true,
+      "matchesAfterCRLFRestoration": false
+    },
+    {
+      "path": "review/2026-10-11-web-search-targeted-repair.md",
+      "expectedBytes": 6114,
+      "actualBytes": 6114,
+      "expectedSha256": "CDD0650C15EBBA4EC41E76876BCA231F67B590306408AA72C95A521D5BAE99F4",
+      "actualSha256": "CDD0650C15EBBA4EC41E76876BCA231F67B590306408AA72C95A521D5BAE99F4",
+      "matches": true,
+      "matchesAfterCRLFRestoration": false
+    },
+    {
+      "path": "review/change-template.md",
+      "expectedBytes": 1550,
+      "actualBytes": 1550,
+      "expectedSha256": "389E466AB6A63914788AABAEFF03A8D8678C7FB082F526B9B4930ABADC03F83D",
+      "actualSha256": "389E466AB6A63914788AABAEFF03A8D8678C7FB082F526B9B4930ABADC03F83D",
+      "matches": true,
+      "matchesAfterCRLFRestoration": false
+    },
+    {
+      "path": "review/README.md",
+      "expectedBytes": 33029,
+      "actualBytes": 33029,
+      "expectedSha256": "A76A656DE0EB600B52D3038D15164C1A31E5D97FAE963F758AA3550AA55F60E6",
+      "actualSha256": "A76A656DE0EB600B52D3038D15164C1A31E5D97FAE963F758AA3550AA55F60E6",
+      "matches": true,
+      "matchesAfterCRLFRestoration": false
+    }
+  ],
+  "exactMatches": 8,
+  "total": 15,
+  "missingApplicationFiles": [
+    "package.json (original application)",
+    "tsconfig.json (original application)",
+    "src/personality.ts",
+    "src/personality/prompt.ts",
+    "src/runtime/turn-runtime.ts",
+    "scripts/web-search-stage-artifacts.mjs",
+    "scripts/web-search-live-budget.mjs",
+    "runtime saved answer/source reports"
+  ],
+  "originalApplicationBaseline": "33bc2c64fc256b7ba6aea683ce6a9cce2378f078 is not present in the supplied repository remote"
+}

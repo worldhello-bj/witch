@@ -1,0 +1,95 @@
+(node:13) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[web-search] provider=exa results=1
+[web-search] provider=brave-llm-context results=1 query="query"
+[web-search] provider=tavily results=1 credits=unknown query="query"
+[web-search] provider=baidu results=1 query="query"
+[web-search] fallback engine=search_pro failed: Zhipu Search returned an invalid JSON object (HTTP 200)
+[web-search] fallback engine=search_pro failed: Zhipu Search returned an invalid JSON object (HTTP 200)
+[web-search] engine=search_pro results=1 query="query"
+[web-search] fallback engine=search_pro failed: Zhipu Search returned an invalid result collection schema
+[web-search] provider=exa results=1
+[web-search] provider=exa contents=1/1
+✔ structured parser rejects "null" without throwing (2.251756ms)
+✔ narrative parser rejects "null" without throwing (0.403297ms)
+✔ structured parser rejects "[]" without throwing (0.105551ms)
+✔ narrative parser rejects "[]" without throwing (0.099509ms)
+✔ structured parser rejects "true" without throwing (0.126606ms)
+✔ narrative parser rejects "true" without throwing (0.250108ms)
+✔ structured parser rejects "0" without throwing (0.099407ms)
+✔ narrative parser rejects "0" without throwing (0.068685ms)
+✔ structured parser rejects "\"\"" without throwing (0.096592ms)
+✔ narrative parser rejects "\"\"" without throwing (0.251514ms)
+✔ structured parser rejects "" without throwing (0.170759ms)
+✔ narrative parser rejects "" without throwing (0.080558ms)
+✔ structured parser rejects "   " without throwing (0.060159ms)
+✔ narrative parser rejects "   " without throwing (0.051214ms)
+✔ structured parser refuses ambiguous wrapper [{}] (0.113001ms)
+✔ narrative parser refuses ambiguous wrapper [{}] (0.227595ms)
+✔ structured parser refuses ambiguous wrapper ["unexpected root array", {}] (0.071098ms)
+✔ narrative parser refuses ambiguous wrapper ["unexpected root array", {}] (0.09071ms)
+✔ structured parser refuses ambiguous wrapper {}
+{} (0.436205ms)
+✔ narrative parser refuses ambiguous wrapper {}
+{} (0.291409ms)
+✔ a single fenced JSON object remains compatible (1.421467ms)
+✔ object extraction handles escaped quotes and braces inside strings (0.469247ms)
+✔ null synthesis uses the bounded format repair instead of terminating the whole answer (1.265288ms)
+✔ null factual audit receives its one format retry (0.627889ms)
+✔ GLM null HTTP payload is a controlled response/schema error (9.458345ms)
+✔ ExaWebSearch rejects root null with a controlled schema error (1.153826ms)
+✔ ExaWebSearch rejects root [] with a controlled schema error (0.596322ms)
+✔ ExaWebSearch keeps usable rows when a provider includes null or malformed rows (1.866772ms)
+✔ ExaWebSearch rejects a non-array result collection without a native TypeError (0.766018ms)
+✔ BraveLlmContextSearch rejects root null with a controlled schema error (1.337556ms)
+✔ BraveLlmContextSearch rejects root [] with a controlled schema error (0.677302ms)
+✔ BraveLlmContextSearch keeps usable rows when a provider includes null or malformed rows (0.959564ms)
+✔ BraveLlmContextSearch rejects a non-array result collection without a native TypeError (0.443543ms)
+✔ TavilyWebSearch rejects root null with a controlled schema error (1.202908ms)
+✔ TavilyWebSearch rejects root [] with a controlled schema error (0.462509ms)
+✔ TavilyWebSearch keeps usable rows when a provider includes null or malformed rows (0.714988ms)
+✔ TavilyWebSearch rejects a non-array result collection without a native TypeError (0.312911ms)
+✔ BaiduWebSearch rejects root null with a controlled schema error (0.476766ms)
+✔ BaiduWebSearch rejects root [] with a controlled schema error (0.396827ms)
+✔ BaiduWebSearch keeps usable rows when a provider includes null or malformed rows (0.65598ms)
+✔ BaiduWebSearch rejects a non-array result collection without a native TypeError (0.313926ms)
+✔ ZhipuWebSearch rejects root null with a controlled schema error (0.631752ms)
+✔ ZhipuWebSearch rejects root [] with a controlled schema error (0.330274ms)
+✔ ZhipuWebSearch keeps usable rows when a provider includes null or malformed rows (0.502257ms)
+✔ ZhipuWebSearch rejects a non-array result collection without a native TypeError (0.382287ms)
+✔ Exa unusable highlight elements do not abort another valid source (0.570989ms)
+✔ Exa null contents row does not discard a valid fetched body (1.251461ms)
+✔ the HTTP deadline remains active after headers while a real response body stalls (111.870106ms)
+[web-search] semantic tool queries=["first query","second query","third query"]
+✔ a stalled transport that ignores AbortSignal still returns control within its deadline (51.437988ms)
+[web-search] provider=exa contents=0/1
+[web-search] semantic tool queries=["query"]
+✔ all sequential searches consume one shared turn deadline (65.468057ms)
+✔ Exa whitespace-only contents never becomes a fetched authoritative page (2.083383ms)
+✔ oversized provider JSON is rejected before it can consume an unbounded read (16.533646ms)
+[web-search] semantic tool queries=["query"]
+✔ turn deadline releases the caller even when a custom search provider ignores cancellation (50.568057ms)
+[web-search] planned contextual query="公开资料查询"
+[web-search] planned contextual query="公开资料查询"
+[web-search] provider=exa results=1
+[web-search] provider=brave-llm-context results=1 query="query"
+[web-search] provider=tavily results=1 credits=unknown query="query"
+[web-search] provider=baidu results=1 query="query"
+[web-search] engine=search_pro results=1 query="query"
+✔ external cancellation releases an uncooperative provider without claiming completion (21.058813ms)
+✔ beginToolTurn forwards the caller cancellation signal into completion (0.457529ms)
+✔ planWebSearchQuery forwards the caller cancellation signal into completion (0.246209ms)
+✔ contextual query planning accepts the same single fenced JSON contract as research (0.163352ms)
+✔ ExaWebSearch malformed optional metadata cannot crash candidate preparation (0.952164ms)
+✔ BraveLlmContextSearch malformed optional metadata cannot crash candidate preparation (0.463458ms)
+✔ TavilyWebSearch malformed optional metadata cannot crash candidate preparation (1.380885ms)
+✔ BaiduWebSearch malformed optional metadata cannot crash candidate preparation (0.432218ms)
+✔ ZhipuWebSearch malformed optional metadata cannot crash candidate preparation (0.301575ms)
+ℹ tests 62
+ℹ suites 0
+ℹ pass 62
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 901.355327

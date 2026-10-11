@@ -7,76 +7,49 @@ import { assignEvidenceGroups, bindSearchResultsToQuery, claimMeetsIndependentEv
 
 const narrative = (paragraphs) => JSON.stringify({ paragraphs });
 const expressionPoints = [
-  { id: 1, requestedPointIds: [1], kind: "已核验事实或解释" },
-  { id: 2, requestedPointIds: [1], kind: "已核验事实或解释" },
-  { id: 3, requestedPointIds: [2], kind: "已核验的信息缺口" },
-  { id: 4, requestedPointIds: [1], kind: "已核验事实或解释" },
+  { id: 1, requestedPointIds: [1], kind: "已核验事实或解释", text: "已审核的核心事实。" },
+  { id: 2, requestedPointIds: [1], kind: "已核验事实或解释", text: "同一问项的次要事实。" },
+  { id: 3, requestedPointIds: [2], kind: "已核验的信息缺口", text: "本轮未核实第二问。" },
+  { id: 4, requestedPointIds: [1], kind: "已核验事实或解释", text: "另一条已审核事实。" },
 ];
-assert.ok(parseResearchNarrative(narrative([
-  { text: "简短回答，并说明缺口。", claimRefs: [1, 2, 3, 4] },
-]), expressionPoints),
-  "a concise, complete natural answer passes narrative validation");
-assert.ok(parseResearchNarrative(narrative([
-  { text: "简短回答，并说明缺口。", claimRefs: [1, 3] },
-]), expressionPoints),
-  "the expression may omit secondary facts when each requested point and every evidence gap remain covered");
-assert.equal(parseResearchNarrative(narrative([
-  { text: "简短回答。", claimRefs: [1] },
-]), expressionPoints), undefined,
-"a concise expression is rejected if it omits an evidence-gap limitation");
-assert.equal(parseResearchNarrative(narrative([
-  { text: "只能说本轮未确认。", claimRefs: [2] },
-]), [
-  { id: 1, requestedPointIds: [1], kind: "已核验事实或解释" },
-  { id: 2, requestedPointIds: [1], kind: "已核验的信息缺口" },
-]), undefined,
-"a gap cannot replace a supported factual answer for the same requested point");
-assert.equal(parseResearchNarrative(narrative([
-  { text: "只回答第一问。", claimRefs: [1] },
-]), expressionPoints), undefined,
-"a concise expression is rejected if it leaves a requested point uncovered");
-assert.equal(parseResearchNarrative(narrative([
-  { text: "a".repeat(401), claimRefs: [1] },
-  { text: "缺口。", claimRefs: [3] },
-]), expressionPoints), undefined,
-"an overlong paragraph falls back instead of being delivered as natural expression");
-assert.equal(parseResearchNarrative(narrative([
-  { text: "a".repeat(350), claimRefs: [1] },
-  { text: "b".repeat(351), claimRefs: [2, 3] },
-]), expressionPoints), undefined,
-"a narrative over the total compact-answer limit falls back to the verified structured answer");
+const completeNarrative = parseResearchNarrative(narrative([{ claimRefs: [1, 2, 3, 4] }]), expressionPoints);
+assert.equal(completeNarrative.paragraphs[0].text, expressionPoints.map(point => point.text).join(" "),
+  "the last stage assembles exact audited natural sentences, not an unaudited paraphrase");
+assert.ok(parseResearchNarrative(narrative([{ claimRefs: [1, 3] }]), expressionPoints),
+  "secondary facts may be omitted when facts, requested points, and every gap remain covered");
+assert.equal(parseResearchNarrative(narrative([{ claimRefs: [1] }]), expressionPoints), undefined,
+  "omitting an evidence gap fails closed");
+assert.equal(parseResearchNarrative(narrative([{ claimRefs: [2] }]), [
+  { id: 1, requestedPointIds: [1], kind: "已核验事实或解释", text: "核实事实。" },
+  { id: 2, requestedPointIds: [1], kind: "已核验的信息缺口", text: "具体限制。" },
+]), undefined, "a limitation cannot replace an available factual answer");
+assert.equal(parseResearchNarrative(narrative([{ claimRefs: [1, 3] }]), [
+  { ...expressionPoints[0], text: "a".repeat(401) }, expressionPoints[2],
+]), undefined, "a selected paragraph above 400 characters uses the audited fallback");
+assert.equal(parseResearchNarrative(narrative([{ claimRefs: [1] }, { claimRefs: [3] }]), [
+  { ...expressionPoints[0], text: "a".repeat(350) }, { ...expressionPoints[2], text: "b".repeat(351) },
+]), undefined, "a selected narrative above 700 characters uses the audited fallback");
 const mergedNarrative = parseResearchNarrative(narrative([
-  { text: "一", claimRefs: [1] }, { text: "二", claimRefs: [2] },
-  { text: "三", claimRefs: [4] }, { text: "四", claimRefs: [3] },
+  { claimRefs: [1] }, { claimRefs: [2] }, { claimRefs: [4] }, { claimRefs: [3] },
 ]), expressionPoints);
-assert.ok(mergedNarrative, "short natural expression paragraphs can be combined safely");
-assert.equal(mergedNarrative.paragraphs.length, 3,
-  "the renderer consolidates short paragraphs to the three-paragraph format cap");
-assert.deepEqual(mergedNarrative.paragraphs.flatMap((paragraph) => paragraph.claimRefs), [1, 2, 4, 3],
-  "paragraph consolidation preserves every claim and limitation citation reference");
+assert.equal(mergedNarrative.paragraphs.length, 3);
+assert.deepEqual(mergedNarrative.paragraphs.flatMap(paragraph => paragraph.claimRefs), [1, 2, 4, 3],
+  "paragraph consolidation preserves each approved sentence and its ID");
+// Minimal fixture derived from the saved Sunset failure description. The raw
+// runtime report was not included in this handoff, so this is not a live replay.
 const sunsetSamplePoints = [
-  { id: 1, requestedPointIds: [1], kind: "已核验事实或解释" },
-  { id: 2, requestedPointIds: [2, 3], kind: "已核验事实或解释" },
-  { id: 3, requestedPointIds: [3], kind: "已核验事实或解释" },
-  { id: 4, requestedPointIds: [2], kind: "已核验事实或解释" },
-  ...[5, 6, 7].map((id) => ({ id, requestedPointIds: [id === 5 ? 1 : id === 6 ? 3 : 2], kind: "已核验的信息缺口" })),
+  { id: 1, requestedPointIds: [1], kind: "已核验事实或解释", text: "阿科米娅提供临时等级。" },
+  { id: 2, requestedPointIds: [2], kind: "已核验事实或解释", text: "司空震在觉醒时获得全部效果。" },
+  { id: 3, requestedPointIds: [1, 2], kind: "已核验的信息缺口", text: "本轮无法确认正式服版本及两种描述的关系。" },
 ];
-const savedSunsetNarrative = [
-  { text: "先把名字这件事说清楚：我能核实到的‘日落海倒转’，是《王者万象棋》里围绕‘日落海’阵营、以玉环（阿科米娅）为核心的成型思路，攻略称它当前对局里关注度和压制力都很突出。这个名字没有找到官方公告出处，所以不能确定是不是官方术语，下面的内容都来自攻略和社区页面的转述，可能被作者简化过。", claimRefs: [1, 4] },
-  { text: "机制本身其实不复杂：阿科米娅（玉环）先养成自己的核心等级，然后在每次开战前，把自己这个等级作为‘临时等级’平均借给日落海阵营的英雄——这就是‘倒转’的核心，等于是让整个阵营来分摊和复用他一个人的养成成果。", claimRefs: [2] },
-  { text: "触发时机上，等级转移是每次开战前自动进行的，不需要手动操作；有条件的是司空震：他只在获得临时等级提升时吃到一半效果，而‘觉醒’是拿到全部效果的触发条件。", claimRefs: [3] },
-  { text: "还有几个缺口要跟主人说明：具体数值细节，以及这套玩法对应正式服哪个版本，来源里都没交代；两套描述的关系也没说清。", claimRefs: [5, 6] },
-];
-assert.equal(parseResearchNarrative(narrative(savedSunsetNarrative), sunsetSamplePoints), undefined,
-  "the saved Sunset answer is rejected because it omits the audited source-version and description-relationship limitation");
-const completedSunsetNarrative = parseResearchNarrative(narrative([
-  ...savedSunsetNarrative,
-  { text: "另有描述来自体验服材料，现有证据不能确认其与新攻略说法的关系。", claimRefs: [7] },
-]), sunsetSamplePoints);
-assert.ok(completedSunsetNarrative,
-  "the saved Sunset answer can pass format and point coverage once its omitted limitation is represented");
-assert.equal(completedSunsetNarrative.paragraphs.length, 3,
-  "the saved Sunset answer's short paragraphs consolidate without dropping claim references");
+for (const text of [
+  "阿科米娅是唯一核心，关注度和压制力都很突出。",
+  "司空震无需觉醒就能获得全部效果。",
+  "正式服根本没有这个玩法。",
+]) assert.equal(parseResearchNarrative(narrative([{ text, claimRefs: [1, 2, 3] }]), sunsetSamplePoints), undefined,
+  "all valid reference IDs do not authorize role swaps, condition loss, or unsupported negative facts");
+assert.ok(parseResearchNarrative(narrative([{ claimRefs: [1, 2, 3] }]), sunsetSamplePoints),
+  "the exact approved sentences and limitations remain deliverable");
 
 const pointBindingEvidence = {
   cards: [{ point: "问项二", requestedPointIds: [2], finding: "事实卡", evidenceScope: "quoted-content", status: "supported",
@@ -521,7 +494,6 @@ const server = http.createServer(async (request, response) => {
           }] });
         }
         return JSON.stringify({ paragraphs: [{
-          text: `简单说，${data.approvedPoints.map(point => point.text).join("；")}`,
           claimRefs: data.approvedPoints.map(point => point.id),
         }] });
       })() }
@@ -685,7 +657,7 @@ try {
         { title: "不安全链接", link: "javascript:alert(1)", content: "不得成为来源链接" }];
     }, async enrichResults(results, signal) {
       if (signal) {
-        assert.equal(signal, searchAbort?.signal);
+        assert.equal(signal, searchRequests.at(-1)?.signal, "page retrieval shares the active research deadline");
       }
       return results.map((source) => ({ ...source,
         verificationContent: semanticScopeRelevanceMode
@@ -754,7 +726,7 @@ try {
   assert.equal(searchRequests[0].query, "王者万象棋 马可养猪流 阵容 棋手 上阵英雄");
   assert.equal(searchRequests[1].query, "王者万象棋 马可养猪流 运营阶段 条件");
   assert.equal(searchRequests[2].query, "王者万象棋 马可养猪流 适用版本");
-  assert.equal(searchRequests[0].signal, searchAbort.signal, "turn cancellation reaches the search provider");
+  assert.ok(searchRequests[0].signal instanceof AbortSignal, "the composed turn deadline reaches the search provider");
   assert.match(semanticSynthesisRequest.messages.filter(message => message.role === "tool")[0].tool_call_id, /^web-search-/);
   assert.match(semanticSynthesisRequest.messages.find(message => message.role === "tool").content, /https:\/\/news\.qq\.com\/rain\/a\/example/);
   assert.equal(semanticSynthesisRequest.max_tokens, 3000,
@@ -836,7 +808,7 @@ try {
     "full page text is not poured into the model context");
   assert.match(searchReply.text, /\[媒体平台来源1\]\(https:\/\/news\.qq\.com\/rain\/a\/example\)/,
     "hosting platform is rendered separately from the page-author claim");
-  assert.match(searchReply.text, /核心机制。；该账号自称为官方，但身份未经独立核验。 \[媒体平台来源1\]\(https:\/\/news\.qq\.com\/rain\/a\/example\)/,
+  assert.match(searchReply.text, /核心机制。 \[媒体平台来源1\]\(https:\/\/news\.qq\.com\/rain\/a\/example\) 该账号自称为官方，但身份未经独立核验。 \[媒体平台来源1\]\(https:\/\/news\.qq\.com\/rain\/a\/example\)/,
     "paragraph cites only a source bound to its reviewed evidence cards");
   assert.doesNotMatch(searchReply.text, /官方指定玩法/,
     "a claim cannot label an unverified-domain citation as an official statement");
@@ -914,7 +886,7 @@ try {
   assert.equal(semanticExpressionPayload.approvedPoints[0].sourceKinds[0].sourceKind, "media",
     "each approved point carries provenance so expression cannot silently upgrade source authority");
   assert.equal(semanticExpressionPayload.sourceMetadata[0].sourceKind, "media");
-  assert.match(searchReply.text, /简单说，/);
+  assert.match(searchReply.text, /我查到的攻略把棋手和上阵英雄分开写/);
   assert.match(searchReply.text, /\[媒体平台来源1\]\(https:\/\/news\.qq\.com\/rain\/a\/example\)/,
     "paragraph citations are generated from the structured approved claim references");
   semanticSelfDescriptionMode = false;
@@ -931,7 +903,7 @@ try {
   const repairedMissingEvidenceRefsReply = await searchBrain.reply({ conversationId: "onebot:private:missing-evidence-refs",
     text: "查证一个核心机制并说明证据范围。", attachments: [] });
   semanticMissingEvidenceRefsMode = false;
-  assert.match(repairedMissingEvidenceRefsReply.text, /简单说，来源将棋手与上阵英雄分别列出/u,
+  assert.match(repairedMissingEvidenceRefsReply.text, /来源将棋手与上阵英雄分别列出/u,
     "a claim without exact citations is rejected and repaired rather than delivered");
   assert.equal(semanticSynthesisCalls - beforeMissingEvidenceRefsRepair, 2,
     "the malformed no-citation claim receives one bounded structural repair");
@@ -1064,8 +1036,8 @@ try {
   semanticRejectNarrativeAudits = false;
   assert.equal(semanticNarrativeAuditCalls - narrativeAuditCallsBeforeMvp, 0,
     "lightweight expression does not invoke the removed style-audit stage");
-  assert.match(expressionMvpReply.text, /简单说，/u,
-    "a structurally valid natural Witch reply is kept without waiting for a second model approval");
+  assert.match(expressionMvpReply.text, /我查到的攻略把棋手和上阵英雄分开写/u,
+    "the audited natural wording survives without an additional model approval or free rewrite");
   assert.match(semanticExpressionRequest.messages[0].content, /普通问题通常1到2段、约100到300个汉字/u,
     "natural expression defaults to a short, conversational answer instead of a research-report length");
   assert.match(semanticExpressionRequest.messages[0].content, /次要细节可以省略/u,
